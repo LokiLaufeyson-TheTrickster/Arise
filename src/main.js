@@ -35,18 +35,18 @@ let taskFilter = 'all';
 
 // ── SVG Icons ──
 const ICONS = {
-  dashboard: '<img src="/ui_nav_dashboard.png" style="width:24px;height:24px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(0,229,255,0.4))" alt="HUD">',
-  dungeons: '<img src="/ui_nav_dungeons.png" style="width:24px;height:24px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(0,229,255,0.4))" alt="Dungeons">',
-  shadows: '<img src="/ui_nav_shadows.png" style="width:24px;height:24px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(0,229,255,0.4))" alt="Shadows">',
-  profile: '<img src="/ui_nav_profile.png" style="width:24px;height:24px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(0,229,255,0.4))" alt="Profile">',
-  settings: '<img src="/ui_nav_settings.png" style="width:24px;height:24px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(0,229,255,0.4))" alt="Settings">',
-  plus: '<img src="/ui_btn_add.png" style="width:24px;height:24px;object-fit:contain" alt="Add">',
-  check: '<img src="/ui_btn_complete.png" style="width:20px;height:20px;object-fit:contain" alt="Complete">',
+  dashboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px;filter:drop-shadow(0 0 6px rgba(0,229,255,0.4))"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+  dungeons: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px;filter:drop-shadow(0 0 6px rgba(0,229,255,0.4))"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
+  shadows: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px;filter:drop-shadow(0 0 6px rgba(0,229,255,0.4))"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 0 0 20 7 7 0 0 1 0-20z"/></svg>',
+  profile: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px;filter:drop-shadow(0 0 6px rgba(0,229,255,0.4))"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px;filter:drop-shadow(0 0 6px rgba(0,229,255,0.4))"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:24px;height:24px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:20px;height:20px"><polyline points="20 6 9 17 4 12"/></svg>',
   timer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
-  trash: '<img src="/ui_btn_close.png" style="width:20px;height:20px;object-fit:contain" alt="Remove">',
-  skull: '<img src="/ui_nav_shadows.png" style="width:16px;height:16px;object-fit:contain" alt="Give Up">',
-  mana: '<img src="/ui_icon_mana.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle" alt="Mana">',
-  essence: '<img src="/ui_icon_essence.png" style="width:16px;height:16px;object-fit:contain;vertical-align:middle" alt="Essence">'
+  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  skull: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><circle cx="12" cy="10" r="8"/><path d="M8 22l1-4h6l1 4"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><circle cx="15" cy="10" r="1.5" fill="currentColor"/></svg>',
+  mana: '<svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" style="width:16px;height:16px;vertical-align:middle"><polygon points="12 2 15 10 22 10 16 15 18 22 12 18 6 22 8 15 2 10 9 10"/></svg>',
+  essence: '<svg viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2" style="width:16px;height:16px;vertical-align:middle"><polygon points="12 2 22 12 12 22 2 12"/></svg>'
 };
 
 // ── Boot ──
@@ -407,12 +407,46 @@ function filterTasks(tasks) {
 // ============================================
 // VIEW: SHADOWS
 // ============================================
+let shadowFilterTier = 'all';
+let shadowFilterClass = 'all';
+let shadowFilterBuff = 'all';
+let shadowSortBy = 'tier'; // tier | name | newest
+
 function renderShadows(container) {
-  const shadows = gameState.get('shadows') || [];
+  let shadows = gameState.get('shadows') || [];
   const equipped = gameState.get('equippedShadows') || [];
   const stones = gameState.get('essenceStones');
   const cost = getExtractionCost();
   const canPull = canExtract();
+
+  // Deduplicate by ID (prevents double-render bug)
+  const seenIds = new Set();
+  shadows = shadows.filter(s => {
+    if (seenIds.has(s.id)) return false;
+    seenIds.add(s.id);
+    return true;
+  });
+
+  // Apply filters
+  let filtered = [...shadows];
+  if (shadowFilterTier !== 'all') filtered = filtered.filter(s => s.tier === shadowFilterTier);
+  if (shadowFilterClass !== 'all') filtered = filtered.filter(s => s.class === shadowFilterClass);
+  if (shadowFilterBuff !== 'all') filtered = filtered.filter(s => {
+    const buffStat = s.buff?.stat || s.buff?.type || '';
+    return buffStat === shadowFilterBuff;
+  });
+
+  // Sort
+  const tierOrder = { monarch: 0, commander: 1, elite: 2, common: 3 };
+  if (shadowSortBy === 'tier') {
+    filtered.sort((a, b) => (tierOrder[a.tier] ?? 4) - (tierOrder[b.tier] ?? 4));
+  } else if (shadowSortBy === 'name') {
+    filtered.sort((a, b) => a.name.localeCompare(b.name));
+  } else if (shadowSortBy === 'newest') {
+    filtered.sort((a, b) => new Date(b.extractedAt || 0) - new Date(a.extractedAt || 0));
+  }
+
+  const makeOpt = (val, label, current) => `<option value="${val}" ${current === val ? 'selected' : ''}>${label}</option>`;
 
   container.innerHTML = `
     <div class="section-header">
@@ -435,7 +469,46 @@ function renderShadows(container) {
       <h3 class="section-title">Equipped (${equipped.length}/10)</h3>
     </div>
 
-    ${shadows.length === 0 ? `
+    <!-- Filter/Sort Toolbar -->
+    <div class="panel" style="display:flex;flex-wrap:wrap;gap:var(--space-sm);padding:var(--space-md);margin-bottom:var(--space-lg);align-items:center">
+      <select id="shadow-filter-tier" style="background:var(--black);color:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:12px;font-family:var(--font-mono)">
+        ${makeOpt('all', '⚔ All Tiers', shadowFilterTier)}
+        ${makeOpt('monarch', '👑 Monarch', shadowFilterTier)}
+        ${makeOpt('commander', '🔮 Commander', shadowFilterTier)}
+        ${makeOpt('elite', '🗡 Elite', shadowFilterTier)}
+        ${makeOpt('common', '🛡 Infantry', shadowFilterTier)}
+      </select>
+      <select id="shadow-filter-class" style="background:var(--black);color:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:12px;font-family:var(--font-mono)">
+        ${makeOpt('all', '⚡ All Classes', shadowFilterClass)}
+        ${makeOpt('assassin', '🗡 Assassin', shadowFilterClass)}
+        ${makeOpt('knight', '🛡 Knight', shadowFilterClass)}
+        ${makeOpt('mage', '🔮 Mage', shadowFilterClass)}
+        ${makeOpt('tank', '🏰 Tank', shadowFilterClass)}
+        ${makeOpt('ranger', '🏹 Ranger', shadowFilterClass)}
+      </select>
+      <select id="shadow-filter-buff" style="background:var(--black);color:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:12px;font-family:var(--font-mono)">
+        ${makeOpt('all', '✨ All Buffs', shadowFilterBuff)}
+        ${makeOpt('str', '💪 Strength', shadowFilterBuff)}
+        ${makeOpt('agi', '⚡ Agility', shadowFilterBuff)}
+        ${makeOpt('int', '🧠 Intelligence', shadowFilterBuff)}
+        ${makeOpt('vit', '❤️ Vitality', shadowFilterBuff)}
+        ${makeOpt('sns', '👁 Sense', shadowFilterBuff)}
+        ${makeOpt('wil', '🔥 Willpower', shadowFilterBuff)}
+      </select>
+      <select id="shadow-sort" style="background:var(--black);color:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-size:12px;font-family:var(--font-mono)">
+        ${makeOpt('tier', '↕ Sort: Rarity', shadowSortBy)}
+        ${makeOpt('name', '↕ Sort: Name', shadowSortBy)}
+        ${makeOpt('newest', '↕ Sort: Newest', shadowSortBy)}
+      </select>
+      <span style="font-size:11px;color:var(--ash);margin-left:auto">${filtered.length}/${shadows.length} shown</span>
+    </div>
+
+    ${filtered.length === 0 && shadows.length > 0 ? `
+      <div class="empty-state">
+        <div class="empty-state__text">No shadows match filters</div>
+        <div class="empty-state__sub">Try adjusting your filter criteria</div>
+      </div>
+    ` : shadows.length === 0 ? `
       <div class="empty-state">
         <img src="/empty_shadows.png" alt="No Shadows" style="width:120px; margin-bottom:var(--space-md); opacity:0.8; border-radius:50%; filter:drop-shadow(0 0 20px rgba(167,139,250,0.3));" />
         <div class="empty-state__text">No shadows extracted</div>
@@ -443,7 +516,7 @@ function renderShadows(container) {
       </div>
     ` : `
       <div class="shadow-grid" id="shadow-grid">
-        ${shadows.map(s => `
+        ${filtered.map(s => `
           <div class="shadow-card ${s.equipped ? 'equipped' : ''}" data-tier="${s.tier}" data-shadow-id="${s.id}" id="shadow-${s.id}">
             ${s.imageUrl 
               ? `<div style="width:100%; height:80px; overflow:hidden; border-radius:var(--radius-sm); margin-bottom:var(--space-sm); position:relative;">
@@ -453,6 +526,7 @@ function renderShadows(container) {
             }
             <div class="shadow-card__name">${s.name}</div>
             <div class="shadow-card__tier-badge" style="color:${getTierColor(s.tier)}">${getTierLabel(s.tier)}</div>
+            <div style="font-size:10px;color:var(--ash);margin-top:2px;text-transform:capitalize">${s.class || ''}</div>
             <div class="shadow-card__buff">${getBuffDescription(s.buff)}</div>
             ${s.duplicates > 0 ? `<div style="font-size:10px;color:var(--ash);margin-top:4px">×${s.duplicates + 1}</div>` : ''}
           </div>
@@ -464,6 +538,20 @@ function renderShadows(container) {
   // Extract button
   document.getElementById('extract-btn')?.addEventListener('click', () => {
     startExtraction();
+  });
+
+  // Filter/Sort listeners
+  document.getElementById('shadow-filter-tier')?.addEventListener('change', (e) => {
+    shadowFilterTier = e.target.value; renderShadows(container);
+  });
+  document.getElementById('shadow-filter-class')?.addEventListener('change', (e) => {
+    shadowFilterClass = e.target.value; renderShadows(container);
+  });
+  document.getElementById('shadow-filter-buff')?.addEventListener('change', (e) => {
+    shadowFilterBuff = e.target.value; renderShadows(container);
+  });
+  document.getElementById('shadow-sort')?.addEventListener('change', (e) => {
+    shadowSortBy = e.target.value; renderShadows(container);
   });
 
   // Shadow card clicks (equip/unequip)

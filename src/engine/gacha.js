@@ -178,12 +178,14 @@ function generateShadow(tier) {
   else if (tier === 'commander') mult = 4;
   else if (tier === 'monarch') mult = 8;
   
+  const chosenStat = buffStats[Math.floor(Math.random() * buffStats.length)];
+  const statValue = Math.floor((Math.random() * 2 + 1) * mult);
   const buff = {
-    type: buffStats[Math.floor(Math.random() * buffStats.length)],
-    value: Math.floor((Math.random() * 2 + 1) * mult),
-    desc: 'Loading...' // Will be replaced by AI
+    type: 'stat',
+    stat: chosenStat,
+    value: statValue,
+    desc: `+${statValue} ${chosenStat.toUpperCase()}`
   };
-  buff.desc = `System default: +${buff.value} ${buff.type.toUpperCase()}`;
 
   return {
     id,
@@ -253,13 +255,23 @@ export function getTierColor(tier) {
 
 export function getBuffDescription(buff) {
   if (!buff) return 'Evolution Material';
+  const STAT_NAMES = { str: 'Strength', agi: 'Agility', int: 'Intelligence', vit: 'Vitality', sns: 'Sense', wil: 'Willpower' };
   switch (buff.type) {
-    case 'stat': return `+${(buff.value * 100).toFixed(0)}% ${(buff.stat || '').toUpperCase()} gain`;
+    case 'stat': {
+      const statLabel = STAT_NAMES[buff.stat] || (buff.stat || '').toUpperCase();
+      return `+${typeof buff.value === 'number' && buff.value < 1 ? (buff.value * 100).toFixed(0) + '%' : buff.value} ${statLabel}`;
+    }
     case 'global_exp': return `+${(buff.value * 100).toFixed(0)}% Global EXP`;
     case 'shop_discount': return `${(buff.value * 100).toFixed(0)}% Shop Discount`;
     case 'penalty_clear': return 'Instant Penalty Clear';
-    case 'chain_shield': return 'Chain Break Shield (1x)';
+    case 'chain_shield': return 'Chain Break Shield (1×)';
     case 'double_stones': return '2× Stone Drops';
-    default: return 'Unknown Buff';
+    default: {
+      // Legacy fallback: buff.type might be a stat key like 'str', 'agi', etc.
+      if (STAT_NAMES[buff.type]) {
+        return `+${buff.value} ${STAT_NAMES[buff.type]}`;
+      }
+      return buff.desc || 'Passive Buff';
+    }
   }
 }
