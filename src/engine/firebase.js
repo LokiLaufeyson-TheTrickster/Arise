@@ -9,22 +9,35 @@ let isSyncing = false;
 
 export function initFirebase() {
   const settings = gameState.get('settings') || {};
-  const configStr = settings.firebaseConfig;
+  let configStr = settings.firebaseConfig;
   
   if (!configStr) return false;
 
   try {
-    // Try to parse as strict JSON
     let configObj = null;
+    
+    // 1. Try strict JSON
     try {
-      configObj = JSON.parse(configStr);
+      configObj = JSON.parse(configStr.trim());
     } catch (e) {
-      // If they pasted the JS object without quotes, do a loose eval-like parse (unsafe generally, but ok locally for a config object)
-      // Basic cleaning to make it JSON compliant
-      const cleaned = configStr
-        .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2": ')
-        .replace(/'/g, '"')
-        .replace(/;\s*$/, '');
+      // 2. Loose Parsing for JS-style objects
+      let cleaned = configStr.trim();
+      
+      // Extract content within curly braces if it's a full JS assignment
+      const match = cleaned.match(/\{[\s\S]*\}/);
+      if (match) cleaned = match[0];
+
+      cleaned = cleaned
+        // Ensure keys are quoted: key: -> "key":
+        .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?\s*:/g, '"$2":')
+        // Ensure values use double quotes: 'value' -> "value"
+        .replace(/:\s*'([^']+)'/g, ':"$1"')
+        // Remove trailing commas before closing braces/brackets
+        .replace(/,\s*([\}\]])/g, '$1')
+        // Final cleanup of extra characters like variable declarations (const config = ...)
+        .replace(/^[^{]*/, '')
+        .replace(/[^}]*$/, '');
+
       configObj = JSON.parse(cleaned);
     }
 
