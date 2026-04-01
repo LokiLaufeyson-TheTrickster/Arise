@@ -119,12 +119,20 @@ function getShadowStatBuff(stat) {
 
 // Get all attribute values formatted
 export function getAttributeSummary() {
-  const attrs = gameState.get('attributes');
-  return Object.entries(ATTRIBUTES).map(([key, info]) => ({
-    key,
-    ...info,
-    value: attrs[key] || 0,
-    rank: getStatRank(attrs[key] || 0),
-    rankColor: getStatRankColor(getStatRank(attrs[key] || 0)),
-  }));
+  const attrs = gameState.get('attributes') || {};
+  return Object.entries(ATTRIBUTES).map(([key, info]) => {
+    const baseValue = attrs[key] || 0;
+    const bonusValue = getShadowStatBuff(key);
+    const totalValue = baseValue + bonusValue;
+    
+    return {
+      key,
+      ...info,
+      baseValue,
+      bonusValue,
+      value: totalValue, // Unified total for convenience
+      rank: getStatRank(totalValue),
+      rankColor: getStatRankColor(getStatRank(totalValue)),
+    };
+  });
 }

@@ -25,6 +25,9 @@ import { drawRadarChart } from './components/hud/AttributeRadar.js';
 import { PortalAnimation } from './components/gacha/Portal.js';
 import { pulseManaVeins, addFracture, healFractures, playGlitchTransition, showLevelUpSequence, showToast, showExpToast, showStoneToast, showChainToast } from './components/effects/effectsManager.js';
 
+import { showHandBook } from './components/HandBook.js';
+
+
 // ── Globals ──
 let currentView = 'dashboard';
 let particles = null;
@@ -46,7 +49,8 @@ const ICONS = {
   trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
   skull: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><circle cx="12" cy="10" r="8"/><path d="M8 22l1-4h6l1 4"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><circle cx="15" cy="10" r="1.5" fill="currentColor"/></svg>',
   mana: '<svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" style="width:16px;height:16px;vertical-align:middle"><polygon points="12 2 15 10 22 10 16 15 18 22 12 18 6 22 8 15 2 10 9 10"/></svg>',
-  essence: '<svg viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2" style="width:16px;height:16px;vertical-align:middle"><polygon points="12 2 22 12 12 22 2 12"/></svg>'
+  essence: '<svg viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2" style="width:16px;height:16px;vertical-align:middle"><polygon points="12 2 22 12 12 22 2 12"/></svg>',
+  help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;vertical-align:middle"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
 };
 
 // ── Boot ──
@@ -266,6 +270,9 @@ function renderDashboard(container) {
         <div class="status-name">
           ${name}
           <span class="badge badge-rank" style="color:${getRankColor(rank)}">${rankInfo.name}</span>
+          <button id="open-handbook-dash" style="background:transparent; margin-left:var(--space-sm); opacity:0.6; color:var(--ash); border:none; padding:4px;" title="Hunter's Handbook">
+            ${ICONS.help}
+          </button>
         </div>
         <div class="status-title">${title}</div>
         <div class="status-level-row">
@@ -302,7 +309,10 @@ function renderDashboard(container) {
       ${attrs.map(a => `
         <div class="panel stat-card">
           <div class="stat-card__icon">${a.icon}</div>
-          <div class="stat-card__value">${a.value}</div>
+          <div class="stat-card__value">
+            ${a.value}
+            ${a.bonusValue > 0 ? `<span style="font-size:10px; color:var(--emerald); display:block;">(+${a.bonusValue})</span>` : ''}
+          </div>
           <div class="stat-card__name">${a.key.toUpperCase()}</div>
           <div class="stat-card__rank" style="color:${a.rankColor}">${a.rank}-Rank</div>
         </div>
@@ -346,6 +356,10 @@ function renderDashboard(container) {
   document.getElementById('dash-see-all')?.addEventListener('click', () => navigateTo('dungeons'));
   document.getElementById('dash-new-task')?.addEventListener('click', () => showTaskCreator());
   document.getElementById('dash-pomodoro')?.addEventListener('click', () => showPomodoroTimer());
+  document.getElementById('open-handbook-dash')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    showHandBook();
+  });
 
   // Task card listeners
   attachTaskCardListeners();
@@ -604,12 +618,21 @@ function renderProfile(container) {
       </div>
     </div>
 
-    <div class="section-header"><h3 class="section-title">Attributes</h3></div>
+    <div class="section-header">
+      <h3 class="section-title">Attributes</h3>
+      <button id="open-handbook-profile" style="background:transparent; opacity:0.6; color:var(--cyan); border:none; padding:4px;" title="Hunter's Handbook">
+        ${ICONS.help}
+      </button>
+    </div>
     <div class="panel profile-section" style="padding:var(--space-lg);margin-bottom:var(--space-xl)">
       ${attrs.map(a => `
         <div class="profile-stat-row">
           <span class="profile-stat-row__label">${a.icon} ${a.name}</span>
-          <span class="profile-stat-row__value" style="color:${a.rankColor}">${a.value} <small style="font-size:10px;opacity:0.6">(${a.rank})</small></span>
+          <span class="profile-stat-row__value" style="color:${a.rankColor}">
+            ${a.value} 
+            ${a.bonusValue > 0 ? `<small style="color:var(--emerald); font-size:10px; margin-left:4px">(+${a.bonusValue})</small>` : ''}
+            <small style="font-size:10px;opacity:0.6;margin-left:4px">(${a.rank})</small>
+          </span>
         </div>
       `).join('')}
     </div>
@@ -646,6 +669,11 @@ function renderProfile(container) {
       </div>
     </div>
   `;
+
+  document.getElementById('open-handbook-profile')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    showHandBook();
+  });
 }
 
 // ============================================
