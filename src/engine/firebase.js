@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, onSnapshot, setDoc, enableIndexedDbPersistence } from 'firebase/firestore';
 import gameState from '../state/gameState.js';
 
 let db = null;
@@ -30,6 +30,12 @@ export function initFirebase() {
 
     const app = initializeApp(configObj);
     db = getFirestore(app);
+    
+    // Enable offline bulletproof caching for the Dungeons/Shadows
+    enableIndexedDbPersistence(db).catch((err) => {
+      console.warn("Offline Persistence fell back to memory:", err.code);
+    });
+
     return true;
   } catch (err) {
     console.error("Firebase Init Error:", err);
