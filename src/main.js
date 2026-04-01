@@ -295,6 +295,11 @@ function startBackgroundSystems() {
       // Could trigger penalty view here
     }
   }, 30000);
+
+  // Reactive Firestore Sync
+  gameState.on('*', () => {
+    pushToGuild();
+  });
 }
 
 // ============================================
