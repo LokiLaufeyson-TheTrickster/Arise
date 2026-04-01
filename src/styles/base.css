@@ -189,6 +189,10 @@ select {
   background-size: 20px;
   padding-right: 40px;
 }
+select option {
+  background: var(--obsidian, #0D1117);
+  color: var(--white, #F0F6FC);
+}
 
 /* ── Panels / Cards ── */
 .panel {

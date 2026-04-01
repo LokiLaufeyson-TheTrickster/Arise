@@ -7,7 +7,7 @@ import gameState from '../state/gameState.js';
 import { CATEGORIES } from './rankSystem.js';
 
 const GEMINI_VERSION = 'v1beta';
-const GEMINI_MODEL = 'gemini-1.5-flash'; // Fastest, cheapest for these tasks
+const GEMINI_MODEL = 'gemini-2.0-flash'; // Updated from deprecated 1.5-flash
 
 function getApiKey() {
   const settings = gameState.get('settings') || {};

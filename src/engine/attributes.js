@@ -6,12 +6,12 @@
 import gameState from '../state/gameState.js';
 
 export const ATTRIBUTES = {
-  str: { key: 'str', name: 'Strength', icon: '<img src="/stat_str.png" style="width:100%;height:100%;object-fit:contain" alt="STR">', color: '#FF6B35' },
-  agi: { key: 'agi', name: 'Agility', icon: '<img src="/stat_agi.png" style="width:100%;height:100%;object-fit:contain" alt="AGI">', color: '#FFD700' },
-  int: { key: 'int', name: 'Intelligence', icon: '<img src="/stat_int.png" style="width:100%;height:100%;object-fit:contain" alt="INT">', color: '#2979FF' },
-  vit: { key: 'vit', name: 'Vitality', icon: '<img src="/stat_vit.png" style="width:100%;height:100%;object-fit:contain" alt="VIT">', color: '#00E676' },
-  sns: { key: 'sns', name: 'Sense', icon: '<img src="/stat_sns.png" style="width:100%;height:100%;object-fit:contain" alt="SNS">', color: '#E040FB' },
-  wil: { key: 'wil', name: 'Willpower', icon: '<img src="/stat_wil.png" style="width:100%;height:100%;object-fit:contain" alt="WIL">', color: '#FF1744' },
+  str: { key: 'str', name: 'Strength', icon: '<img src="/stat_str.png" style="width:28px;height:28px;object-fit:contain;vertical-align:middle" alt="STR">', color: '#FF6B35' },
+  agi: { key: 'agi', name: 'Agility', icon: '<img src="/stat_agi.png" style="width:28px;height:28px;object-fit:contain;vertical-align:middle" alt="AGI">', color: '#FFD700' },
+  int: { key: 'int', name: 'Intelligence', icon: '<img src="/stat_int.png" style="width:28px;height:28px;object-fit:contain;vertical-align:middle" alt="INT">', color: '#2979FF' },
+  vit: { key: 'vit', name: 'Vitality', icon: '<img src="/stat_vit.png" style="width:28px;height:28px;object-fit:contain;vertical-align:middle" alt="VIT">', color: '#00E676' },
+  sns: { key: 'sns', name: 'Sense', icon: '<img src="/stat_sns.png" style="width:28px;height:28px;object-fit:contain;vertical-align:middle" alt="SNS">', color: '#E040FB' },
+  wil: { key: 'wil', name: 'Willpower', icon: '<img src="/stat_wil.png" style="width:28px;height:28px;object-fit:contain;vertical-align:middle" alt="WIL">', color: '#FF1744' },
 };
 
 // Rank thresholds per attribute
@@ -41,8 +41,8 @@ export function getStatRankColor(rank) {
 
 export function addAttributePoints(stat, points) {
   const attrs = gameState.get('attributes');
-  const knightBuff = getKnightBuff(stat);
-  const finalPoints = Math.round(points * (1 + knightBuff));
+  const shadowBuff = getShadowStatBuff(stat);
+  const finalPoints = Math.round(points * (1 + shadowBuff));
 
   attrs[stat] = (attrs[stat] || 0) + finalPoints;
   gameState.set('attributes', { ...attrs });
@@ -94,15 +94,22 @@ export function getLootFloorBonus() {
   return Math.min(wil * 0.1, 15); // max 15% shift
 }
 
-// Knight shadow buff for physical stats
-function getKnightBuff(stat) {
-  const shadows = gameState.get('equippedShadows') || [];
+// Shadow buff for stats (all equipped shadows, not just knights)
+function getShadowStatBuff(stat) {
+  const equippedIds = gameState.get('equippedShadows') || [];
   const allShadows = gameState.get('shadows') || [];
   let buff = 0;
 
-  for (const id of shadows) {
+  for (const id of equippedIds) {
     const shadow = allShadows.find(s => s.id === id);
-    if (shadow && shadow.class === 'knight' && shadow.buff?.stat === stat) {
+    if (!shadow || !shadow.buff) continue;
+    
+    // New format: buff.type === 'stat' && buff.stat === 'str'
+    if (shadow.buff.type === 'stat' && shadow.buff.stat === stat) {
+      buff += shadow.buff.value;
+    }
+    // Legacy format: buff.type is the stat key itself (e.g. 'str', 'agi')
+    else if (shadow.buff.type === stat) {
       buff += shadow.buff.value;
     }
   }

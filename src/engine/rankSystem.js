@@ -24,10 +24,10 @@ export const DIFFICULTY = {
 };
 
 export const CATEGORIES = [
-  { key: 'work', label: 'Work', icon: '<img src="/cat_work.png" style="width:100%;height:100%;object-fit:contain" alt="Work">' },
-  { key: 'fitness', label: 'Fitness', icon: '<img src="/cat_fitness.png" style="width:100%;height:100%;object-fit:contain" alt="Fitness">' },
-  { key: 'study', label: 'Study', icon: '<img src="/cat_study.png" style="width:100%;height:100%;object-fit:contain" alt="Study">' },
-  { key: 'personal', label: 'Personal', icon: '<img src="/cat_personal.png" style="width:100%;height:100%;object-fit:contain" alt="Personal">' },
+  { key: 'work', label: 'Work', icon: '<img src="/cat_work.png" style="width:28px;height:28px;object-fit:contain;vertical-align:middle" alt="Work">' },
+  { key: 'fitness', label: 'Fitness', icon: '<img src="/cat_fitness.png" style="width:28px;height:28px;object-fit:contain;vertical-align:middle" alt="Fitness">' },
+  { key: 'study', label: 'Study', icon: '<img src="/cat_study.png" style="width:28px;height:28px;object-fit:contain;vertical-align:middle" alt="Study">' },
+  { key: 'personal', label: 'Personal', icon: '<img src="/cat_personal.png" style="width:28px;height:28px;object-fit:contain;vertical-align:middle" alt="Personal">' },
 ];
 
 // EXP needed for a given level
