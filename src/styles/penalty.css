@@ -1,0 +1,124 @@
+/* ============================================
+   ARISE V3.0 — Penalty Styles
+   Lockdown, Essence Drain, Overlays
+   ============================================ */
+
+.penalty-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-penalty);
+  background: var(--void);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+}
+
+.penalty-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(255,23,68,0.03) 2px,
+      rgba(255,23,68,0.03) 4px
+    );
+  animation: scanline 8s linear infinite;
+  pointer-events: none;
+}
+
+.penalty-glitch-text {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-black);
+  color: var(--crimson);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  text-shadow: 0 0 30px var(--crimson-glow);
+  position: relative;
+  animation: penaltyGlitch 3s infinite;
+}
+
+@keyframes penaltyGlitch {
+  0%, 90%, 100% {
+    text-shadow: 0 0 30px var(--crimson-glow);
+    transform: none;
+  }
+  91% {
+    text-shadow: 2px 0 var(--cyan), -2px 0 var(--crimson);
+    transform: translateX(2px);
+  }
+  93% {
+    text-shadow: -2px 0 var(--cyan), 2px 0 var(--crimson);
+    transform: translateX(-2px);
+  }
+  95% {
+    text-shadow: 0 0 30px var(--crimson-glow);
+    transform: none;
+  }
+}
+
+.penalty-subtitle {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--crimson);
+  margin-top: var(--space-lg);
+  text-align: center;
+  opacity: 0.8;
+}
+
+.penalty-timer {
+  font-family: var(--font-mono);
+  font-size: var(--text-5xl);
+  font-weight: var(--weight-black);
+  color: var(--white);
+  margin-top: var(--space-2xl);
+  text-shadow: 0 0 20px rgba(255,255,255,0.3);
+}
+
+.penalty-task {
+  margin-top: var(--space-3xl);
+  padding: var(--space-xl);
+  background: rgba(255,23,68,0.05);
+  border: 1px solid rgba(255,23,68,0.2);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  max-width: 320px;
+  width: 100%;
+}
+
+.penalty-task__title {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  color: var(--white);
+  margin-bottom: var(--space-md);
+}
+
+.penalty-task__desc {
+  font-size: var(--text-sm);
+  color: var(--silver);
+  margin-bottom: var(--space-lg);
+}
+
+.penalty-task__timer {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xl);
+  color: var(--crimson);
+  margin-bottom: var(--space-lg);
+}
+
+.penalty-task__confirm {
+  opacity: 0.3;
+  pointer-events: none;
+  transition: all var(--trans-normal);
+}
+
+.penalty-task__confirm.unlocked {
+  opacity: 1;
+  pointer-events: auto;
+}

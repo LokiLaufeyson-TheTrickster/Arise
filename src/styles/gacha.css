@@ -1,0 +1,273 @@
+/* ============================================
+   ARISE V3.0 — Gacha / Shadow Styles
+   Portal, Shadow Cards, Army Roster
+   ============================================ */
+
+/* ── Portal Overlay ── */
+.portal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  background: var(--void);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.portal-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.portal-text {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  color: var(--cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  z-index: 2;
+  text-shadow: 0 0 20px var(--cyan-glow);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ── Shadow Reveal ── */
+.shadow-reveal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  background: var(--void);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  animation: fadeIn 300ms var(--ease-out);
+}
+
+.shadow-reveal__card {
+  width: 220px;
+  padding: var(--space-2xl) var(--space-xl);
+  border-radius: var(--radius-xl);
+  text-align: center;
+  position: relative;
+  animation: shadowRevealDrop 0.6s var(--ease-elastic);
+}
+
+@keyframes shadowRevealDrop {
+  from {
+    transform: scale(0.3) rotateY(180deg);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) rotateY(0);
+    opacity: 1;
+  }
+}
+
+.shadow-reveal__card[data-tier="common"] {
+  background: linear-gradient(180deg, #1a1a2e, #16213e);
+  border: 1px solid var(--tier-common);
+}
+.shadow-reveal__card[data-tier="elite"] {
+  background: linear-gradient(180deg, #0d1b3e, #1a237e);
+  border: 1px solid var(--tier-elite);
+  box-shadow: var(--glow-cyan-sm);
+}
+.shadow-reveal__card[data-tier="commander"] {
+  background: linear-gradient(180deg, #1a0a2e, #311b92);
+  border: 1px solid var(--tier-commander);
+  box-shadow: var(--glow-purple);
+}
+.shadow-reveal__card[data-tier="monarch"] {
+  background: linear-gradient(180deg, #001a1a, #002020);
+  border: 1px solid var(--tier-monarch);
+  box-shadow: var(--glow-cyan), 0 0 40px var(--cyan-glow);
+  animation: shadowRevealDrop 0.6s var(--ease-elastic), rotateGlow 3s linear infinite;
+}
+
+.shadow-reveal__emoji {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto var(--space-md) auto;
+  animation: float 3s ease-in-out infinite;
+  color: var(--white);
+}
+
+.shadow-reveal__emoji svg {
+  width: 100%;
+  height: 100%;
+}
+
+.shadow-reveal__name {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  color: var(--white);
+  margin-bottom: var(--space-xs);
+}
+
+.shadow-reveal__tier {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--space-md);
+}
+
+.shadow-reveal__buff {
+  font-size: var(--text-sm);
+  color: var(--emerald);
+  padding: var(--space-sm) var(--space-md);
+  background: rgba(0,230,118,0.08);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0,230,118,0.2);
+}
+
+.shadow-reveal__actions {
+  display: flex;
+  gap: var(--space-md);
+  margin-top: var(--space-2xl);
+  z-index: 2;
+}
+
+/* ── Shadow Army Grid ── */
+.shadow-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-sm);
+}
+
+@media (min-width: 480px) {
+  .shadow-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.shadow-card {
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  background: var(--obsidian);
+  border: 1px solid var(--cyan-border);
+  text-align: center;
+  position: relative;
+  transition: all var(--trans-normal);
+  cursor: pointer;
+}
+
+.shadow-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--cyan);
+}
+
+.shadow-card.equipped {
+  border-color: var(--cyan);
+  box-shadow: var(--glow-cyan-sm);
+}
+
+.shadow-card.equipped::after {
+  content: '';
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  width: 12px;
+  height: 12px;
+  background-color: var(--cyan);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") no-repeat center / contain;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
+.shadow-card[data-tier="elite"] { border-color: rgba(41,121,255,0.3); }
+.shadow-card[data-tier="commander"] { border-color: rgba(123,47,190,0.3); }
+.shadow-card[data-tier="monarch"] {
+  border-color: var(--cyan);
+  box-shadow: var(--glow-cyan-sm);
+}
+
+.shadow-card__emoji {
+  width: 32px;
+  height: 32px;
+  margin: 0 auto var(--space-sm) auto;
+  color: var(--white);
+}
+
+.shadow-card__emoji svg {
+  width: 100%;
+  height: 100%;
+}
+
+.shadow-card__name {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semi);
+  color: var(--white);
+  margin-bottom: 2px;
+}
+
+.shadow-card__tier-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.shadow-card__buff {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--emerald);
+  margin-top: var(--space-sm);
+}
+
+/* ── Extraction Button ── */
+.extract-section {
+  text-align: center;
+  padding: var(--space-2xl) var(--space-lg);
+}
+
+.extract-cost {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--purple);
+  margin-top: var(--space-md);
+}
+
+.extract-btn {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--purple), var(--obsidian));
+  border: 2px solid var(--purple);
+  color: var(--white);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all var(--trans-normal);
+  box-shadow: var(--glow-purple);
+  position: relative;
+  overflow: hidden;
+}
+
+.extract-btn:hover {
+  transform: scale(1.05);
+  box-shadow: var(--glow-purple), 0 0 40px var(--purple-glow);
+}
+
+.extract-btn:active {
+  transform: scale(0.95);
+}
+
+.extract-btn::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: conic-gradient(var(--purple), var(--cyan), var(--purple));
+  z-index: -1;
+  animation: spin 3s linear infinite;
+  opacity: 0.5;
+}
