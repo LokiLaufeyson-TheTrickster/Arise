@@ -95,12 +95,15 @@ class GameState {
     return JSON.parse(JSON.stringify(this.state));
   }
 
-  reset() {
-    const { loadState: load } = require('./storage.js');
-    // Clear and reload
+  clearSession() {
     localStorage.removeItem('arise_v3_gamedata');
     this.state = loadState();
     this.emit('*', this.state);
+    window.location.reload(); // Force a fresh boot
+  }
+
+  reset() {
+    this.clearSession();
   }
 }
 

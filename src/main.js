@@ -26,6 +26,7 @@ import { PortalAnimation } from './components/gacha/Portal.js';
 import { pulseManaVeins, addFracture, healFractures, playGlitchTransition, showLevelUpSequence, showToast, showExpToast, showStoneToast, showChainToast } from './components/effects/effectsManager.js';
 
 import { showHandBook } from './components/HandBook.js';
+import { initFirebase, connectToGuild, pushToGuild } from './engine/firebase.js';
 
 
 // ── Globals ──
@@ -65,10 +66,18 @@ function initApp() {
   // Apply rank theme
   updateRankTheme();
 
-  // Check first-time setup
-  if (!gameState.get('initialized')) {
-    renderSetupWizard(app);
+  // Check login state
+  const isAuth = gameState.get('initialized') && gameState.get('settings.guildId');
+  
+  if (!isAuth) {
+    renderLoginView(app);
     return;
+  }
+
+  // Initialize Firebase and connect
+  if (initFirebase()) {
+    const s = gameState.get('settings');
+    connectToGuild(s.guildId, s.username, s.password);
   }
 
   renderAppShell(app);
@@ -80,58 +89,104 @@ function updateRankTheme() {
   document.documentElement.setAttribute('data-rank', gameState.get('rank') || 'e');
 }
 
-// ── Setup Wizard ──
-function renderSetupWizard(container) {
+// ── Login / Setup View ──
+function renderLoginView(container) {
+  const savedConfig = gameState.get('settings.firebaseConfig') || '';
+  
   container.innerHTML = `
     <div class="setup-overlay" id="setup-wizard">
-      <div class="setup-content">
+      <div class="setup-content" style="max-width:450px">
         <div style="font-size:48px;margin-bottom:16px;">⚔️</div>
         <h1 class="setup-title">ARISE</h1>
-        <p class="setup-subtitle">The System has chosen you. Enter your Hunter name to begin.</p>
+        <p class="setup-subtitle">Connect to "The System" using your Hunter credentials.</p>
+        
         <div class="setup-field">
-          <label for="hunter-name-input">Hunter Name</label>
-          <input type="text" id="hunter-name-input" placeholder="Enter your name..." maxlength="20" autocomplete="off" />
+          <label>Hunter ID (Username)</label>
+          <input type="text" id="login-username" placeholder="e.g. SungJinWoo" autocomplete="username" />
         </div>
-        <button class="btn btn-primary btn-lg btn-full" id="setup-begin-btn" disabled>
-          Begin Awakening
+        
+        <div class="setup-field">
+          <label>Access Key (Password)</label>
+          <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+
+        <div class="setup-field">
+          <label>Target Guild ID</label>
+          <input type="text" id="login-guild" placeholder="e.g. shadow-monarch-1" autocomplete="off" />
+        </div>
+
+        <div class="setup-field">
+          <label>Firebase Config (JSON)</label>
+          <textarea id="login-config" placeholder='{"apiKey": "...", ...}' style="height:80px;font-size:10px">${savedConfig}</textarea>
+        </div>
+
+        <button class="btn btn-primary btn-lg btn-full" id="login-btn">
+          Connect to System
         </button>
-        <p class="setup-warning">// This name cannot be changed easily. Choose wisely.</p>
+        
+        <p id="login-error" style="color:var(--crimson);font-size:12px;margin-top:12px;display:none"></p>
+        <p class="setup-warning">// Existing Guilds will be joined. New ones will be registered.</p>
       </div>
     </div>
   `;
 
-  const input = document.getElementById('hunter-name-input');
-  const btn = document.getElementById('setup-begin-btn');
+  const btn = document.getElementById('login-btn');
+  const errorEl = document.getElementById('login-error');
 
-  input.addEventListener('input', () => {
-    btn.disabled = input.value.trim().length < 2;
-  });
+  btn.addEventListener('click', async () => {
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value.trim();
+    const guildId = document.getElementById('login-guild').value.trim() || username;
+    const config = document.getElementById('login-config').value.trim();
 
-  btn.addEventListener('click', () => {
-    const name = input.value.trim();
-    if (name.length < 2) return;
+    if (!username || !password || !config) {
+      errorEl.textContent = "SYSTEM ERROR: All fields required.";
+      errorEl.style.display = 'block';
+      return;
+    }
 
+    btn.disabled = true;
+    btn.textContent = "INITIALIZING...";
     playClick();
-    gameState.batch({
-      initialized: true,
-      hunterName: name,
-      createdAt: new Date().toISOString(),
-      lastActiveDate: new Date().toISOString(),
-    });
-    gameState.forceSave();
 
-    // Dramatic transition
-    const wizard = document.getElementById('setup-wizard');
-    wizard.style.animation = 'fadeOut 0.8s ease-out forwards';
-    setTimeout(() => {
-      renderAppShell(container);
-      startBackgroundSystems();
-      showToast(`Welcome, Hunter ${name}. The System awaits.`, 'info');
-    }, 800);
+    // Temporarily save config to initialize
+    gameState.set('settings.firebaseConfig', config);
+    
+    if (initFirebase()) {
+      const result = await connectToGuild(guildId, username, password);
+      
+      if (result.success) {
+        gameState.batch({
+          initialized: true,
+          hunterName: username,
+          'settings.username': username,
+          'settings.password': password,
+          'settings.guildId': guildId,
+          'settings.firebaseConfig': config,
+          createdAt: new Date().toISOString()
+        });
+        gameState.forceSave();
+
+        const wizard = document.getElementById('setup-wizard');
+        wizard.style.animation = 'fadeOut 0.5s ease-out forwards';
+        setTimeout(() => {
+          renderAppShell(container);
+          startBackgroundSystems();
+          showToast(`Welcome back, Shadow Monarch. Sync active.`, 'success');
+        }, 500);
+      } else {
+        errorEl.textContent = result.error;
+        errorEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = "Connect to System";
+      }
+    } else {
+      errorEl.textContent = "FIREBASE ERROR: Invalid Configuration.";
+      errorEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = "Connect to System";
+    }
   });
-
-  // Focus on mount
-  setTimeout(() => input.focus(), 300);
 }
 
 // ── App Shell ──
@@ -788,13 +843,28 @@ function renderSettings(container) {
         </div>
         <span style="color:var(--crimson);font-size:var(--text-sm)">→</span>
       </div>
+      <div class="settings-item" style="cursor:pointer" id="logout-system">
+        <div>
+          <div class="settings-item__label" style="color:var(--crimson)">Disconnect / Logout</div>
+          <div class="settings-item__desc">Clear local session & return to login</div>
+        </div>
+        <span style="color:var(--crimson);font-size:var(--text-sm)">→</span>
+      </div>
     </div>
 
-    <div style="text-align:center;margin-top:var(--space-2xl);color:var(--ash);font-size:var(--text-xs);font-family:var(--font-mono)">
+    <div style="text-align:center;margin-top:var(--space-2xl);color:var(--ash);font-size:var(--text-xs);font-family:var(--font-mono);padding-bottom:var(--space-2xl)">
       ARISE V3.0 — The Monarch's Absolute System<br/>
       Built for the relentless.
     </div>
   `;
+
+  // Listeners
+  document.getElementById('logout-system')?.addEventListener('click', () => {
+    if (confirm("DISCONNECT SYSTEM? All local session data will be cleared.")) {
+      playClick();
+      gameState.clearSession();
+    }
+  });
 
   // Toggle handlers
   const toggleMap = {

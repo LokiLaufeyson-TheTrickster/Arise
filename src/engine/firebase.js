@@ -43,30 +43,56 @@ export function initFirebase() {
   }
 }
 
-export function connectToGuild(guildId) {
-  if (!db) return;
+export async function connectToGuild(guildId, username, password) {
+  if (!db) return { success: false, error: 'Firebase not initialized' };
   if (unsub) unsub();
   
-  currentGuildId = guildId;
   const docRef = doc(db, 'guilds', guildId);
+  
+  try {
+    const { getDoc } = await import('firebase/firestore');
+    const docSnap = await getDoc(docRef);
 
-  unsub = onSnapshot(docRef, (docSnap) => {
-    isSyncing = true; // Prevent bounce-back saves
     if (docSnap.exists()) {
       const data = docSnap.data();
-      // Only sync specific shared entities
-      if (data.tasks) gameState.set('tasks', data.tasks, false);
-      if (data.shadows) gameState.set('shadows', data.shadows, false);
-      // Optional: sync stats/level? Probably want to keep those per-user, or share them? Let's share the whole state to be simple, except settings.
-      if (data.stats) gameState.set('stats', data.stats, false);
-      if (data.inventory) gameState.set('inventory', data.inventory, false);
-      if (data.totalStonesSpent !== undefined) gameState.set('totalStonesSpent', data.totalStonesSpent, false);
-      if (data.totalExtractions !== undefined) gameState.set('totalExtractions', data.totalExtractions, false);
+      // Verify password if auth exists
+      if (data.auth && data.auth.password !== password) {
+        return { success: false, error: 'INVALID ACCESS KEY: Permission Denied.' };
+      }
+    } else {
+      // First time registration for this Guild ID
+      await setDoc(docRef, {
+        auth: { username, password, createdAt: new Date().toISOString() },
+        tasks: [],
+        shadows: [],
+        stats: { level: 1, exp: 0, str: 0, agi: 0, int: 0, vit: 0, sns: 0, wil: 0 },
+        inventory: { essenceStones: 0, manaCrystals: 0 }
+      });
     }
-    isSyncing = false;
-  }, (err) => {
-    console.error("Guild Sync Error:", err);
-  });
+
+    currentGuildId = guildId;
+
+    unsub = onSnapshot(docRef, (docSnap) => {
+      isSyncing = true;
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.tasks) gameState.set('tasks', data.tasks, false);
+        if (data.shadows) gameState.set('shadows', data.shadows, false);
+        if (data.stats) gameState.set('attributes', data.stats, false); // Mapping stats to attributes
+        if (data.inventory) {
+          if (data.inventory.essenceStones !== undefined) gameState.set('essenceStones', data.inventory.essenceStones, false);
+        }
+        if (data.totalStonesSpent !== undefined) gameState.set('totalStonesSpent', data.totalStonesSpent, false);
+        if (data.totalExtractions !== undefined) gameState.set('totalExtractions', data.totalExtractions, false);
+      }
+      isSyncing = false;
+    });
+
+    return { success: true };
+  } catch (err) {
+    console.error("Guild Connection Error:", err);
+    return { success: false, error: err.message };
+  }
 }
 
 export function pushToGuild() {
@@ -76,8 +102,10 @@ export function pushToGuild() {
   const payload = {
     tasks: gameState.get('tasks') || [],
     shadows: gameState.get('shadows') || [],
-    stats: gameState.get('stats') || { level: 1, exp: 0, str: 0, agi: 0, int: 0, vit: 0, sns: 0, wil: 0 },
-    inventory: gameState.get('inventory') || { essenceStones: 0, manaCrystals: 0 },
+    stats: gameState.get('attributes') || { str: 0, agi: 0, int: 0, vit: 0, sns: 0, wil: 0 },
+    inventory: { 
+      essenceStones: gameState.get('essenceStones') || 0 
+    },
     totalStonesSpent: gameState.get('totalStonesSpent') || 0,
     totalExtractions: gameState.get('totalExtractions') || 0,
     lastUpdate: new Date().toISOString()
