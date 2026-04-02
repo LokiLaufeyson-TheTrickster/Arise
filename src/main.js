@@ -853,6 +853,7 @@ function showCustomRewardCreator(onComplete) {
     addCustomReward({ name, cost, tier });
     
     showToast(`${name} registered in Registry.`, 'success');
+    pulseManaVeins();
     playArise();
     overlay.remove();
     onComplete();
@@ -1115,8 +1116,8 @@ function renderSettings(container) {
     const input = document.getElementById('gemini-key-input');
     const key = input.value.trim();
     
-    if (key && !key.startsWith('AIza')) {
-      showToast('Invalid Gemini API Key format', 'error');
+    if (!key) {
+      showToast('Key cannot be empty', 'error');
       return;
     }
 
@@ -1236,7 +1237,9 @@ function renderDungeonHTML(dungeon, showActions = false) {
   return `
     <div class="dungeon-card" data-dungeon-id="${dungeon.id}" id="dungeon-${dungeon.id}">
       <div class="dungeon-card__header">
-        <div class="dungeon-card__cat-icon">${cat.icon}</div>
+        <div class="dungeon-card__cat-icon">
+          ${cat.icon.startsWith('/') ? `<img src="${cat.icon}" class="cat-img-pulse" />` : cat.icon}
+        </div>
         <div class="dungeon-card__title-area">
           <div class="dungeon-card__title">${dungeon.title}</div>
           <div class="dungeon-card__subtitle">
@@ -1340,6 +1343,16 @@ async function handleAbandonmentFlow(roomId) {
   const room = rooms.find(r => r.id === roomId);
   if (!room) return;
 
+  const settings = gameState.get('settings') || {};
+  if (!settings.geminiKey) {
+    // Fallback: No AI Key -> Simple Delete
+    if (confirm(`[SYSTEM NOTICE]\nNo API Key detected. Terminate this quest immediately?`)) {
+      deleteRoom(roomId);
+      renderView(currentView);
+    }
+    return;
+  }
+
   const reason = prompt(`[THE SYSTEM IS WATCHING]\nWhy are you abandoning this quest, Hunter?`);
   
   if (reason === null) return; // User cancelled
@@ -1442,23 +1455,25 @@ function showTaskCreator() {
                 <input type="text" class="tc-room-title" value="${room.title}" placeholder="${creatorMode === 'solo' ? 'What is your goal?' : 'Room Objective...'}" style="flex:1" />
                 ${creatorMode === 'dungeon' && rooms.length > 1 ? `<button class="btn-icon tc-remove-room" data-index="${index}">${ICONS.trash}</button>` : ''}
               </div>
-              <div style="display:flex; gap:var(--space-sm); margin-top:var(--space-sm);">
-                <div style="flex:1">
-                  <label class="task-creator__label" style="font-size:8px; margin-bottom:2px">Difficulty</label>
-                  <select class="tc-room-diff" style="width:100%; background:var(--black); border:1px solid var(--border); color:var(--ash); font-size:10px; padding:4px;">
-                    ${Object.entries(DIFFICULTY).map(([k, d]) => `<option value="${k}" ${room.difficulty === k ? 'selected' : ''}>${d.label}</option>`).join('')}
-                  </select>
+              
+              <div class="tc-param-grid" style="margin-top:var(--space-md);">
+                <label class="task-creator__label" style="font-size:9px;">Difficulty</label>
+                <div class="tc-diff-selector" data-room-index="${index}">
+                  ${Object.entries(DIFFICULTY).map(([k, d]) => `
+                    <button class="tc-diff-btn ${room.difficulty === k ? 'selected' : ''}" data-diff="${k}" title="${d.label}" style="--rank-color:${d.color}">
+                      ${k.charAt(0).toUpperCase()}
+                    </button>
+                  `).join('')}
                 </div>
-                <div style="flex:1">
-                  <label class="task-creator__label" style="font-size:8px; margin-bottom:2px">Primary Stat</label>
-                  <select class="tc-room-stat" style="width:100%; background:var(--black); border:1px solid var(--border); color:var(--ash); font-size:10px; padding:4px;">
-                    <option value="str" ${room.stat === 'str' ? 'selected' : ''}>STR</option>
-                    <option value="agi" ${room.stat === 'agi' ? 'selected' : ''}>AGI</option>
-                    <option value="vit" ${room.stat === 'vit' ? 'selected' : ''}>VIT</option>
-                    <option value="int" ${room.stat === 'int' ? 'selected' : ''}>INT</option>
-                    <option value="sns" ${room.stat === 'sns' ? 'selected' : ''}>SNS</option>
-                    <option value="wil" ${room.stat === 'wil' ? 'selected' : ''}>WIL</option>
-                  </select>
+
+                <label class="task-creator__label" style="margin-top:var(--space-sm); font-size:9px;">Primary Attribute</label>
+                <div class="tc-stat-selector" data-room-index="${index}">
+                  ${['str','agi','vit','int','sns','wil'].map(s => `
+                    <button class="tc-stat-btn ${room.stat === s ? 'selected' : ''}" data-stat="${s}" title="${s.toUpperCase()}">
+                      <img src="/stat_${s}.png" />
+                      <span>${s.toUpperCase()}</span>
+                    </button>
+                  `).join('')}
                 </div>
               </div>
             </div>
@@ -1489,6 +1504,12 @@ function showTaskCreator() {
     backdrop.querySelectorAll('.category-option').forEach(opt => {
       opt.onclick = () => {
         selectedCat = opt.dataset.cat;
+        // Auto-sync stat based on category
+        const catData = CATEGORIES.find(c => c.key === selectedCat);
+        if (catData) {
+          const mainStat = Object.entries(catData.stats).sort((a,b) => b[1] - a[1])[0][0];
+          rooms.forEach(r => r.stat = mainStat);
+        }
         playClick();
         render();
       };
@@ -1523,10 +1544,94 @@ function showTaskCreator() {
       backdrop.remove();
     };
 
+    // Re-attach all listeners
+    backdrop.querySelectorAll('.type-tab').forEach(tab => {
+      tab.onclick = () => {
+        syncFormState();
+        creatorMode = tab.dataset.mode;
+        if (creatorMode === 'solo' && rooms.length > 1) rooms = [rooms[0]];
+        playClick();
+        render();
+      };
+    });
+
+    backdrop.querySelectorAll('.category-option').forEach(opt => {
+      opt.onclick = () => {
+        syncFormState();
+        selectedCat = opt.dataset.cat;
+        // Auto-sync stat based on category
+        const catData = CATEGORIES.find(c => c.key === selectedCat);
+        if (catData) {
+          const mainStat = Object.entries(catData.stats).sort((a,b) => b[1] - a[1])[0][0];
+          rooms.forEach(r => r.stat = mainStat);
+        }
+        playClick();
+        render();
+      };
+    });
+
+    backdrop.querySelectorAll('.cycle-option').forEach(opt => {
+      opt.onclick = () => {
+        syncFormState();
+        selectedRecurrence = opt.dataset.rec;
+        playClick();
+        render();
+      };
+    });
+
+    backdrop.querySelectorAll('.tc-diff-btn').forEach(btn => {
+      btn.onclick = () => {
+        syncFormState();
+        const roomIdx = btn.parentElement.dataset.roomIndex;
+        rooms[roomIdx].difficulty = btn.dataset.diff;
+        playClick();
+        render();
+      };
+    });
+
+    backdrop.querySelectorAll('.tc-stat-btn').forEach(btn => {
+      btn.onclick = () => {
+        syncFormState();
+        const roomIdx = btn.parentElement.dataset.roomIndex;
+        rooms[roomIdx].stat = btn.dataset.stat;
+        playClick();
+        render();
+      };
+    });
+
+    backdrop.querySelector('#tc-add-room')?.addEventListener('click', () => {
+      syncFormState();
+      rooms.push({ id: Date.now(), title: '', difficulty: 'normal', stat: 'wil' });
+      playClick();
+      render();
+    });
+
+    backdrop.querySelectorAll('.tc-remove-room').forEach(btn => {
+      btn.onclick = () => {
+        syncFormState();
+        rooms.splice(btn.dataset.index, 1);
+        playClick();
+        render();
+      };
+    });
+
+    backdrop.querySelector('#tc-cancel').onclick = () => {
+      playClick();
+      backdrop.remove();
+    };
+
     backdrop.querySelector('#tc-create').onclick = () => {
       syncFormState();
       const dungeonNameInput = backdrop.querySelector('#tc-dungeon-name');
-      const finalRooms = rooms.filter(r => r.title.trim().length > 0);
+      
+      const finalRooms = rooms.filter(r => r.title.trim().length > 0).map(r => {
+        const nlp = parseDeadline(r.title);
+        return {
+          ...r,
+          title: nlp ? nlp.cleanTitle : r.title,
+          deadline: nlp ? nlp.date : null
+        };
+      });
       
       if (finalRooms.length === 0) {
         showToast('Quest objective cannot be empty, Hunter.', 'error');
@@ -1552,10 +1657,11 @@ function showTaskCreator() {
   function syncFormState() {
     const roomEntries = backdrop.querySelectorAll('.tc-room-entry');
     roomEntries.forEach((entry, i) => {
-      rooms[i].title = entry.querySelector('.tc-room-title').value;
-      rooms[i].difficulty = entry.querySelector('.tc-room-diff').value;
-      rooms[i].stat = entry.querySelector('.tc-room-stat').value;
+      const titleInput = entry.querySelector('.tc-room-title');
+      if (titleInput) rooms[i].title = titleInput.value;
     });
+    const dungeonNameInput = backdrop.querySelector('#tc-dungeon-name');
+    // Global dungeon name is handled during create
   }
 
   document.body.appendChild(backdrop);
@@ -1962,62 +2068,64 @@ function getRankColor(rank) {
   return colors[rank.charAt(0)] || '#ffffff';
 }
 
-/**
- * Advanced Inline NLP Deadline Parser
- * Handles: today, tom, monday, every tue, every other day, 10th of month, etc.
- */
-function parseDeadline(text) {
-  if (!text) return null;
-  const input = text.toLowerCase().trim();
+export function parseDeadline(input) {
+  if (!input) return null;
   const now = new Date();
+  let lower = input.toLowerCase().trim();
+  let cleanTitle = input;
+  let targetDate = null;
+
+  // 1. Relative Dates (today, tomorrow, tod, tom)
+  const relMap = {
+    'today': 0, 'tod': 0,
+    'tomorrow': 1, 'tom': 1
+  };
   
-  // 1. Relative Dates
-  if (/\b(today|tod|now)\b/i.test(input)) return now.toISOString();
-  if (/\b(tomorrow|tom)\b/i.test(input)) {
-    const d = new Date(now);
-    d.setDate(d.getDate() + 1);
-    return d.toISOString();
-  }
-
-  // 2. Weekly Recurrence (every mon, every wed, etc.)
-  const dayMap = { mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6, sun: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6, sunday: 0 };
-  const weeklyMatch = input.match(/every\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun)/i);
-  if (weeklyMatch) {
-    const targetDay = dayMap[weeklyMatch[1].toLowerCase()];
-    const d = new Date(now);
-    d.setDate(d.getDate() + (targetDay + 7 - d.getDay()) % 7);
-    if (d.getTime() <= now.getTime()) d.setDate(d.getDate() + 7);
-    return { type: 'weekly', day: targetDay, iso: d.toISOString() };
-  }
-
-  // 3. Daily Recurrence (everyday, daily, every other day)
-  if (/\b(everyday|daily)\b/i.test(input)) {
-    return { type: 'daily', iso: now.toISOString() };
-  }
-  if (/\bevery\s+other\s+day\b/i.test(input)) {
-    return { type: 'interval', interval: 2, iso: now.toISOString() };
-  }
-
-  // 4. Monthly Recurrence (10th of every month, etc.)
-  const monthlyMatch = input.match(/(\d+)(st|nd|rd|th)?\s+of\s+every\s+month/i);
-  if (monthlyMatch) {
-    const day = parseInt(monthlyMatch[1]);
-    const d = new Date(now.getFullYear(), now.getMonth(), day);
-    if (d.getTime() <= now.getTime()) d.setMonth(d.getMonth() + 1);
-    return { type: 'monthly', day: day, iso: d.toISOString() };
-  }
-
-  // 5. Specific Weekdays (relative to today)
-  for (const [dayName, dayIdx] of Object.entries(dayMap)) {
-    if (new RegExp(`\\b${dayName}\\b`, 'i').test(input)) {
+  for (const [key, offset] of Object.entries(relMap)) {
+    const reg = new RegExp(`\\b${key}\\b`, 'i');
+    if (reg.test(lower)) {
       const d = new Date(now);
-      d.setDate(d.getDate() + (dayIdx + 7 - d.getDay()) % 7);
-      if (d.getTime() <= now.getTime()) d.setDate(d.getDate() + 7);
-      return d.toISOString();
+      d.setDate(d.getDate() + offset);
+      d.setHours(23, 59, 0, 0);
+      targetDate = d;
+      cleanTitle = cleanTitle.replace(reg, '').trim();
+      break;
     }
   }
 
-  return null;
+  // 2. Times (8pm, 4:30, 16:00, etc.)
+  const timeMatch = cleanTitle.match(/\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b/i);
+  if (timeMatch && targetDate) {
+    let hrs = parseInt(timeMatch[1]);
+    const mins = parseInt(timeMatch[2] || 0);
+    const ampm = timeMatch[3]?.toLowerCase();
+
+    if (ampm === 'pm' && hrs < 12) hrs += 12;
+    if (ampm === 'am' && hrs === 12) hrs = 0;
+    
+    targetDate.setHours(hrs, mins, 0, 0);
+    cleanTitle = cleanTitle.replace(timeMatch[0], '').trim();
+  } else if (timeMatch && !targetDate) {
+    const d = new Date(now);
+    let hrs = parseInt(timeMatch[1]);
+    const mins = parseInt(timeMatch[2] || 0);
+    const ampm = timeMatch[3]?.toLowerCase();
+
+    if (ampm === 'pm' && hrs < 12) hrs += 12;
+    if (ampm === 'am' && hrs === 12) hrs = 0;
+    
+    d.setHours(hrs, mins, 0, 0);
+    if (d < now) d.setDate(d.getDate() + 1);
+    targetDate = d;
+    cleanTitle = cleanTitle.replace(timeMatch[0], '').trim();
+  }
+
+  // Clean title
+  cleanTitle = cleanTitle.replace(/\s+/g, ' ').replace(/^[-–—]\s*/, '').trim();
+  cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
+
+  if (!targetDate) return null;
+  return { date: targetDate.toISOString(), cleanTitle: cleanTitle || 'Untitled Quest' };
 }
 
 function formatDeadline(isoString) {

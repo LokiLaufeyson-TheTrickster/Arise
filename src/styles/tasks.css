@@ -626,6 +626,92 @@
   box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
   font-weight: var(--weight-bold);
 }
+
+/* ── Task Creator Premium Selectors ── */
+.tc-diff-selector {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.tc-diff-btn {
+  padding: 8px 0;
+  background: var(--black);
+  border: 1px solid rgba(255,255,255,0.05);
+  color: var(--ash);
+  font-family: var(--font-rajdhani);
+  font-weight: 700;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 4px;
+}
+
+.tc-diff-btn:hover {
+  border-color: var(--rank-color);
+  color: var(--white);
+}
+
+.tc-diff-btn.selected {
+  background: var(--rank-color);
+  border-color: var(--rank-color);
+  color: var(--black);
+  box-shadow: 0 0 10px var(--rank-color);
+}
+
+.tc-stat-selector {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.tc-stat-btn {
+  padding: 8px 4px;
+  background: var(--black);
+  border: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 4px;
+  opacity: 0.5;
+  filter: grayscale(1);
+}
+
+.tc-stat-btn img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.tc-stat-btn span {
+  font-size: 8px;
+  font-family: var(--font-mono);
+  color: var(--ash);
+}
+
+.tc-stat-btn:hover {
+  opacity: 1;
+  filter: grayscale(0);
+  border-color: var(--cyan);
+}
+
+.tc-stat-btn.selected {
+  opacity: 1;
+  filter: grayscale(0);
+  background: var(--cyan-subtle);
+  border-color: var(--cyan);
+  box-shadow: 0 0 10px rgba(0,229,255,0.2);
+}
+
+.tc-stat-btn.selected span {
+  color: var(--cyan);
+  font-weight: 900;
+}
 /* ── Store & Exchange ── */
 .store-card {
   padding: var(--space-md);
