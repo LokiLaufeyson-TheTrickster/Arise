@@ -25,32 +25,32 @@ export const DIFFICULTY = {
 
 export const CATEGORIES = [
   { 
-    key: 'work', label: 'Work', icon: '💼', 
+    key: 'work', label: 'Work', icon: '/cat_work.png', 
     stats: { int: 0.7, wil: 0.3 },
     desc: 'Professional missions that sharpen the mind and resolve.'
   },
   { 
-    key: 'fitness', label: 'Fitness', icon: '⚡', 
+    key: 'fitness', label: 'Fitness', icon: '/cat_fitness.png', 
     stats: { vit: 0.7, str: 0.3 },
     desc: 'Physical trials to transcend human limits.'
   },
   { 
-    key: 'study', label: 'Study', icon: '📚', 
+    key: 'study', label: 'Study', icon: '/cat_study.png', 
     stats: { int: 0.7, sns: 0.3 },
     desc: 'Acquiring forbidden knowledge and heightened perception.'
   },
   { 
-    key: 'social', label: 'Social', icon: '🤝', 
+    key: 'social', label: 'Social', icon: '/cat_personal.png', // Mapped to personal
     stats: { sns: 0.7, agi: 0.3 },
     desc: 'Interactions that hone your instincts and movement.'
   },
   { 
-    key: 'personal', label: 'Personal', icon: '🧘', 
+    key: 'personal', label: 'Personal', icon: '/cat_personal.png', 
     stats: { wil: 0.7, agi: 0.3 },
     desc: 'Self-discipline and flexibility of character.'
   },
   { 
-    key: 'hobby', label: 'Hobby', icon: '🎨', 
+    key: 'hobby', label: 'Hobby', icon: '/cat_work.png', // Mapped to work/creative
     stats: { str: 0.5, sns: 0.5 },
     desc: 'Specialized skills that balance power and precision.'
   }

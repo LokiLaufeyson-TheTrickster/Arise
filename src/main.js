@@ -1385,28 +1385,35 @@ function showTaskCreator() {
   backdrop.className = 'modal-backdrop';
   backdrop.id = 'task-creator-modal';
 
-  let selectedDiff = 'normal';
-  let selectedStat = 'wil';
-  let selectedCat = 'personal';
+  let creatorMode = 'solo'; // solo | dungeon
   let selectedRecurrence = 'none';
+  let selectedCat = 'personal';
   let rooms = [{ id: Date.now(), title: '', difficulty: 'normal', stat: 'wil' }];
 
   function render() {
     backdrop.innerHTML = `
-      <div class="modal task-creator" style="max-height:90vh; overflow-y:auto;">
-        <h2 class="task-creator__title">Create Dungeon</h2>
-
-        <div class="task-creator__field">
-          <label class="task-creator__label">Dungeon Name</label>
-          <input type="text" id="tc-dungeon-name" placeholder="e.g. Morning Ritual, Project Arise..." autocomplete="off" />
+      <div class="modal task-creator" style="max-height:90vh; overflow-y:auto; padding-top:var(--space-xl);">
+        <div class="type-selector" style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-sm); margin-bottom:var(--space-xl);">
+          <button class="type-tab ${creatorMode === 'solo' ? 'active' : ''}" data-mode="solo">Solo Quest</button>
+          <button class="type-tab ${creatorMode === 'dungeon' ? 'active' : ''}" data-mode="dungeon">Multi-Room Dungeon</button>
         </div>
 
+        <h2 class="task-creator__title">${creatorMode === 'solo' ? 'Initialize Solo Quest' : 'Spawn New Dungeon'}</h2>
+
+        ${creatorMode === 'dungeon' ? `
+          <div class="task-creator__field">
+            <label class="task-creator__label">Dungeon Designation</label>
+            <input type="text" id="tc-dungeon-name" placeholder="e.g. Project Arise, Daily Grind..." autocomplete="off" />
+          </div>
+        ` : ''}
+
         <div class="task-creator__field">
-          <label class="task-creator__label">Category</label>
+          <label class="task-creator__label">Mission Category</label>
           <div class="task-creator__category-grid">
             ${CATEGORIES.map(c => `
               <button class="category-option ${c.key === selectedCat ? 'selected' : ''}" data-cat="${c.key}">
-                ${c.icon} ${c.label}
+                <img src="${c.icon}" class="category-icon-img" alt="${c.label}" />
+                <span>${c.label}</span>
               </button>
             `).join('')}
           </div>
@@ -1414,89 +1421,116 @@ function showTaskCreator() {
 
         <div class="task-creator__field">
           <label class="task-creator__label">Recurrence Cycle</label>
-          <div class="task-creator__difficulty-grid">
+          <div class="cycle-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:var(--space-sm);">
             ${['none', 'daily', 'weekly'].map(r => `
-              <button class="recurrence-option ${r === selectedRecurrence ? 'selected' : ''}" data-rec="${r}">
+              <button class="cycle-option ${r === selectedRecurrence ? 'selected' : ''}" data-rec="${r}">
                 ${r.toUpperCase()}
               </button>
             `).join('')}
           </div>
         </div>
 
-        <div class="task-creator__separator">Dungeon Rooms</div>
+        <div class="task-creator__separator">${creatorMode === 'solo' ? 'Quest Objective' : 'Dungeon Rooms'}</div>
+        
         <div id="tc-rooms-list">
           ${rooms.map((room, index) => `
-            <div class="tc-room-entry panel" data-index="${index}">
+            <div class="tc-room-entry panel" data-index="${index}" style="margin-bottom:var(--space-md);">
               <div style="display:flex; gap:var(--space-sm); align-items:center;">
-                <input type="text" class="tc-room-title" value="${room.title}" placeholder="Room Objective..." style="flex:1" />
-                ${rooms.length > 1 ? `<button class="btn-icon tc-remove-room" data-index="${index}">${ICONS.trash}</button>` : ''}
+                <input type="text" class="tc-room-title" value="${room.title}" placeholder="${creatorMode === 'solo' ? 'What is your goal?' : 'Room Objective...'}" style="flex:1" />
+                ${creatorMode === 'dungeon' && rooms.length > 1 ? `<button class="btn-icon tc-remove-room" data-index="${index}">${ICONS.trash}</button>` : ''}
               </div>
-              <div style="display:flex; gap:var(--space-sm); margin-top:var(--space-sm); overflow-x:auto; padding-bottom:4px;">
-                <select class="tc-room-diff" style="flex:1; background:var(--black); border:1px solid var(--border); color:var(--ash); font-size:10px; padding:4px;">
-                  ${Object.entries(DIFFICULTY).map(([k, d]) => `<option value="${k}" ${room.difficulty === k ? 'selected' : ''}>${d.label}</option>`).join('')}
-                </select>
-                <select class="tc-room-stat" style="flex:1; background:var(--black); border:1px solid var(--border); color:var(--ash); font-size:10px; padding:4px;">
-                  ${Object.entries(ATTRIBUTES).map(([k, a]) => `<option value="${k}" ${room.stat === k ? 'selected' : ''}>${k.toUpperCase()}</option>`).join('')}
-                </select>
+              <div style="display:flex; gap:var(--space-sm); margin-top:var(--space-sm);">
+                <div style="flex:1">
+                  <label class="task-creator__label" style="font-size:8px; margin-bottom:2px">Difficulty</label>
+                  <select class="tc-room-diff" style="width:100%; background:var(--black); border:1px solid var(--border); color:var(--ash); font-size:10px; padding:4px;">
+                    ${Object.entries(DIFFICULTY).map(([k, d]) => `<option value="${k}" ${room.difficulty === k ? 'selected' : ''}>${d.label}</option>`).join('')}
+                  </select>
+                </div>
+                <div style="flex:1">
+                  <label class="task-creator__label" style="font-size:8px; margin-bottom:2px">Primary Stat</label>
+                  <select class="tc-room-stat" style="width:100%; background:var(--black); border:1px solid var(--border); color:var(--ash); font-size:10px; padding:4px;">
+                    <option value="str" ${room.stat === 'str' ? 'selected' : ''}>STR</option>
+                    <option value="agi" ${room.stat === 'agi' ? 'selected' : ''}>AGI</option>
+                    <option value="vit" ${room.stat === 'vit' ? 'selected' : ''}>VIT</option>
+                    <option value="int" ${room.stat === 'int' ? 'selected' : ''}>INT</option>
+                    <option value="sns" ${room.stat === 'sns' ? 'selected' : ''}>SNS</option>
+                    <option value="wil" ${room.stat === 'wil' ? 'selected' : ''}>WIL</option>
+                  </select>
+                </div>
               </div>
             </div>
           `).join('')}
         </div>
 
-        <button class="btn btn-ghost btn-full" id="tc-add-room" style="margin-top:var(--space-sm); font-size:12px;">+ Add Room</button>
+        ${creatorMode === 'dungeon' ? `
+          <button class="btn btn-ghost btn-full" id="tc-add-room" style="margin-top:var(--space-sm); font-size:11px; border-style:dashed;">+ Build Another Room</button>
+        ` : ''}
 
-        <div style="display:flex;gap:var(--space-md);margin-top:var(--space-xl)">
+        <div style="display:flex;gap:var(--space-md);margin-top:var(--space-2xl)">
           <button class="btn btn-ghost btn-full" id="tc-cancel">Cancel</button>
-          <button class="btn btn-primary btn-full" id="tc-create">Awaken Dungeon</button>
+          <button class="btn btn-primary btn-full" id="tc-create">Awaken</button>
         </div>
       </div>
     `;
 
-    // Listeners
+    // Re-attach all listeners
+    backdrop.querySelectorAll('.type-tab').forEach(tab => {
+      tab.onclick = () => {
+        creatorMode = tab.dataset.mode;
+        if (creatorMode === 'solo' && rooms.length > 1) rooms = [rooms[0]];
+        playClick();
+        render();
+      };
+    });
+
     backdrop.querySelectorAll('.category-option').forEach(opt => {
-      opt.addEventListener('click', () => {
+      opt.onclick = () => {
         selectedCat = opt.dataset.cat;
         playClick();
         render();
-      });
+      };
     });
 
-    backdrop.querySelectorAll('.recurrence-option').forEach(opt => {
-      opt.addEventListener('click', () => {
+    backdrop.querySelectorAll('.cycle-option').forEach(opt => {
+      opt.onclick = () => {
         selectedRecurrence = opt.dataset.rec;
         playClick();
         render();
-      });
+      };
     });
 
-    backdrop.getElementById('tc-add-room')?.addEventListener('click', () => {
+    backdrop.querySelector('#tc-add-room')?.addEventListener('click', () => {
+      syncFormState();
       rooms.push({ id: Date.now(), title: '', difficulty: 'normal', stat: 'wil' });
       playClick();
-      syncFormState();
       render();
     });
 
     backdrop.querySelectorAll('.tc-remove-room').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.onclick = () => {
+        syncFormState();
         rooms.splice(btn.dataset.index, 1);
         playClick();
-        syncFormState();
         render();
-      });
+      };
     });
 
-    backdrop.getElementById('tc-cancel')?.addEventListener('click', () => backdrop.remove());
-    
-    backdrop.getElementById('tc-create')?.addEventListener('click', () => {
-      syncFormState();
-      const dungeonName = backdrop.querySelector('#tc-dungeon-name').value.trim();
-      if (!dungeonName) return showToast('Assign a name to the Dungeon', 'error');
+    backdrop.querySelector('#tc-cancel').onclick = () => {
+      playClick();
+      backdrop.remove();
+    };
 
-      // NLP Parser for each room
-      const finalRooms = rooms.map(r => ({
-        ...r,
-        deadline: parseDeadline(r.title)
-      }));
+    backdrop.querySelector('#tc-create').onclick = () => {
+      syncFormState();
+      const dungeonNameInput = backdrop.querySelector('#tc-dungeon-name');
+      const finalRooms = rooms.filter(r => r.title.trim().length > 0);
+      
+      if (finalRooms.length === 0) {
+        showToast('Quest objective cannot be empty, Hunter.', 'error');
+        return;
+      }
+
+      const dungeonName = creatorMode === 'solo' ? finalRooms[0].title : (dungeonNameInput?.value || finalRooms[0].title);
 
       createDungeon({
         title: dungeonName,
@@ -1505,18 +1539,14 @@ function showTaskCreator() {
         rooms: finalRooms
       });
 
-      playClick();
+      playArise();
       backdrop.remove();
-      showToast('⚔️ Dungeon spawned! Arise.', 'success');
+      showToast('Quest Initialized. Arise.', 'success');
       renderView(currentView);
-    });
+    };
   }
 
   function syncFormState() {
-    const dungeonName = backdrop.querySelector('#tc-dungeon-name')?.value;
-    if (dungeonName !== undefined) {
-      // Just temporarily store local state if needed between renders
-    }
     const roomEntries = backdrop.querySelectorAll('.tc-room-entry');
     roomEntries.forEach((entry, i) => {
       rooms[i].title = entry.querySelector('.tc-room-title').value;
