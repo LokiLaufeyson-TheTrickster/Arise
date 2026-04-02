@@ -466,10 +466,13 @@ function renderDungeons(container) {
       <h3 class="section-title">⚔️ Dungeon Board</h3>
     </div>
 
-    <div class="filter-tabs" id="task-filters">
+    <div class="filter-tabs" id="task-filters" style="display:flex; overflow-x:auto; gap:var(--space-sm); padding-bottom:var(--space-xs);">
       <button class="filter-tab ${taskFilter === 'all' ? 'active' : ''}" data-filter="all">All</button>
       ${CATEGORIES.map(c => `
-        <button class="filter-tab ${taskFilter === c.key ? 'active' : ''}" data-filter="${c.key}">${c.icon} ${c.label}</button>
+        <button class="filter-tab ${taskFilter === c.key ? 'active' : ''}" data-filter="${c.key}" style="display:flex; align-items:center; gap:var(--space-xs);">
+          <img src="${c.icon}" style="width:16px; height:16px; border-radius:2px; object-fit:cover;" />
+          ${c.label}
+        </button>
       `).join('')}
     </div>
 

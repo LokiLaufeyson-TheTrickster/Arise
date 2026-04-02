@@ -300,30 +300,95 @@
 }
 
 .category-option {
-  padding: var(--space-md);
-  background-color: var(--panel-bg);
+  padding: var(--space-sm);
+  background: var(--shadow);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: var(--space-sm);
-  font-size: var(--text-sm);
-  color: var(--ash);
+  gap: var(--space-xs);
+  cursor: pointer;
   transition: all 0.2s;
+  color: var(--ash);
+  filter: grayscale(0.8);
+  min-height: 80px;
+  justify-content: center;
 }
 
-.category-option svg {
-  width: 24px;
-  height: 24px;
+.category-option:hover {
+  border-color: var(--cyan-border);
+  filter: grayscale(0.2);
 }
 
-.category-option:hover { border-color: var(--cyan-border); }
 .category-option.selected {
   border-color: var(--cyan);
   background: var(--cyan-subtle);
+  filter: grayscale(0);
+  box-shadow: var(--glow-cyan-sm);
+  color: var(--white);
+}
+
+.category-icon-img {
+  width: 100%;
+  max-width: 60px;
+  height: 40px;
+  object-fit: contain;
+  border-radius: 4px;
+  display: block;
+}
+
+/* ── Quest Type Selector ── */
+.type-tab {
+  padding: 10px;
+  background: var(--black);
+  border: 1px solid var(--border);
+  color: var(--ash);
+  font-family: var(--font-display);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.type-tab.active {
+  background: var(--cyan-subtle);
+  border-color: var(--cyan);
   color: var(--cyan);
+  box-shadow: inset 0 0 10px rgba(0,229,255,0.1);
+}
+
+/* ── Recurrence / Cycle Buttons ── */
+.cycle-option {
+  padding: 12px var(--space-sm);
+  background: var(--shadow);
+  border: 1px solid var(--border);
+  color: var(--ash);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all var(--trans-fast);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cycle-option:hover {
+  border-color: var(--cyan-border);
+  color: var(--light);
+}
+
+.cycle-option.selected {
+  background: var(--cyan-subtle);
+  border-color: var(--cyan);
+  color: var(--cyan);
+  box-shadow: 0 0 10px var(--cyan-glow);
+  font-weight: var(--weight-black);
 }
 
 /* ── 2-Minute Rule ── */
@@ -508,19 +573,18 @@
 .filter-tabs::-webkit-scrollbar { display: none; }
 
 .filter-tab {
-  padding: var(--space-xs) var(--space-md);
-  border-radius: var(--radius-full);
-  font-family: var(--font-display);
-  font-size: var(--text-xs);
-  font-weight: var(--weight-semi);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  white-space: nowrap;
-  background: transparent;
+  padding: 8px 16px;
+  background: var(--shadow);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   color: var(--ash);
-  border: 1px solid transparent;
+  font-family: var(--font-display);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
   cursor: pointer;
   transition: all var(--trans-fast);
+  white-space: nowrap;
 }
 
 .filter-tab:hover {
@@ -532,6 +596,35 @@
   color: var(--cyan);
   border-color: var(--cyan);
   background: var(--cyan-subtle);
+  box-shadow: 0 0 10px rgba(0,229,255,0.1);
+}
+
+/* ── Tab Items (Store/General) ── */
+.tab-item {
+  padding: 10px 20px;
+  background: var(--black);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--ash);
+  font-family: var(--font-display);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.tab-item:hover {
+  color: var(--light);
+  border-color: var(--cyan-border);
+}
+
+.tab-item.active {
+  background: var(--cyan-subtle);
+  border-color: var(--cyan);
+  color: var(--cyan);
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+  font-weight: var(--weight-bold);
 }
 /* ── Store & Exchange ── */
 .store-card {
