@@ -4,7 +4,7 @@
 // ============================================
 
 const STORAGE_KEY = 'arise_v3_gamedata';
-const STORAGE_VERSION = 2;
+const STORAGE_VERSION = 3;
 
 function getDefaultState() {
   return {
@@ -57,6 +57,8 @@ function getDefaultState() {
     totalExtractions: 0,
     highestChain: 0,
     totalPomodorosCompleted: 0,
+    customRewards: [],
+    dungeons: [],
 
     // Settings
     settings: {

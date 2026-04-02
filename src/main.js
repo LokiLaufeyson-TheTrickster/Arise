@@ -414,7 +414,7 @@ function renderDashboard(container) {
       <span class="section-action" id="dash-see-all">See All →</span>
     </div>
 
-    ${activeTasks.length === 0 ? `
+    ${dungeons.length === 0 ? `
       <div class="empty-state">
         <img src="/empty_dungeon.png" alt="No Dungeons" style="width:120px; margin-bottom:var(--space-md); opacity:0.8; filter:drop-shadow(0 0 20px rgba(0,229,255,0.2));" />
         <div class="empty-state__text">No active dungeons</div>
@@ -422,7 +422,7 @@ function renderDashboard(container) {
       </div>
     ` : `
       <div class="task-list">
-        ${getActiveDungeons().slice(0, 5).map(d => renderDungeonHTML(d)).join('')}
+        ${dungeons.slice(0, 5).map(d => renderDungeonHTML(d)).join('')}
       </div>
     `}
 
@@ -473,7 +473,7 @@ function renderDungeons(container) {
       `).join('')}
     </div>
 
-    ${tasks.length === 0 ? `
+    ${dungeons.length === 0 ? `
       <div class="empty-state">
         <img src="/empty_dungeon.png" alt="No Dungeons" style="width:120px; margin-bottom:var(--space-md); opacity:0.8; filter:drop-shadow(0 0 20px rgba(0,229,255,0.2));" />
         <div class="empty-state__text">No dungeons to clear</div>
@@ -691,11 +691,11 @@ let storeCategory = 'consumable';
 let storeSearch = '';
 
 async function renderStore(container) {
-  const { SHOP_ITEMS, buyItem } = await import('./engine/shop.js');
+  const { getShopItems, buyItem, removeCustomReward } = await import('./engine/shop.js');
   const userRank = gameState.get('rank').toUpperCase();
   const stones = gameState.get('essenceStones') || 0;
 
-  const filtered = SHOP_ITEMS.filter(item => {
+  const filtered = getShopItems().filter(item => {
     const matchesCat = item.type === storeCategory;
     const matchesSearch = item.name.toLowerCase().includes(storeSearch.toLowerCase());
     return matchesCat && matchesSearch;
@@ -748,6 +748,14 @@ async function renderStore(container) {
         `;
       }).join('')}
     </div>
+
+    ${storeCategory === 'reward' ? `
+      <div style="margin-top:var(--space-md); padding:0 var(--space-md)">
+        <button class="btn btn-secondary" id="open-custom-reward-btn" style="width:100%; gap:var(--space-sm); border-style: dashed; background: rgba(0,229,255,0.02)">
+          ${ICONS.plus} Register Custom Reward
+        </button>
+      </div>
+    ` : ''}
   `;
 
   // Listeners
@@ -762,9 +770,6 @@ async function renderStore(container) {
   const searchInput = document.getElementById('store-search');
   searchInput?.addEventListener('input', (e) => {
     storeSearch = e.target.value;
-    // Don't re-render fully to keep focus? 
-    // Actually, for simple apps re-render is fine.
-    // Better: throttle
   });
   searchInput?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') renderStore(container);
@@ -785,11 +790,74 @@ async function renderStore(container) {
       }
     });
   });
+
+  container.querySelector('#open-custom-reward-btn')?.addEventListener('click', () => {
+    showCustomRewardCreator(() => renderStore(container));
+  });
+}
+
+/**
+ * Modal to add custom Real Life rewards
+ */
+function showCustomRewardCreator(onComplete) {
+  const overlay = document.createElement('div');
+  overlay.className = 'setup-overlay';
+  overlay.style.zIndex = 'var(--z-modal)';
+  
+  overlay.innerHTML = `
+    <div class="setup-content" style="max-width:400px; padding:var(--space-xl)">
+      <h3 class="view-title" style="margin-bottom:var(--space-lg)">Register New Reward</h3>
+      
+      <div class="task-creator">
+        <label class="task-creator__label">Reward Name</label>
+        <input type="text" id="custom-reward-name" placeholder="E.g. 1 Hour Gaming Session" class="task-creator" />
+        
+        <label class="task-creator__label" style="margin-top:var(--space-md)">Extraction Cost (Stones)</label>
+        <input type="number" id="custom-reward-cost" value="25" class="task-creator" />
+        
+        <label class="task-creator__label" style="margin-top:var(--space-md)">System Clearance (Tier)</label>
+        <select id="custom-reward-tier" class="task-creator" style="width:100%; background:var(--black); color:var(--white); padding:8px; border-radius:4px; border:1px solid var(--border);">
+          <option value="E">E-Rank (Default)</option>
+          <option value="D">D-Rank</option>
+          <option value="C">C-Rank</option>
+          <option value="B">B-Rank</option>
+          <option value="A">A-Rank</option>
+          <option value="S">S-Rank (Elite)</option>
+        </select>
+
+        <div style="margin-top:var(--space-2xl); display:grid; grid-template-columns:1fr 1fr; gap:var(--space-md)">
+          <button class="btn btn-ghost" id="cancel-custom-reward">Cancel</button>
+          <button class="btn btn-primary" id="confirm-custom-reward">Register</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  overlay.querySelector('#cancel-custom-reward').onclick = () => {
+    overlay.remove();
+  };
+
+  overlay.querySelector('#confirm-custom-reward').onclick = async () => {
+    const name = overlay.querySelector('#custom-reward-name').value;
+    const cost = parseInt(overlay.querySelector('#custom-reward-cost').value);
+    const tier = overlay.querySelector('#custom-reward-tier').value;
+
+    if (!name) return showToast('Reward name is required.', 'error');
+
+    const { addCustomReward } = await import('./engine/shop.js');
+    addCustomReward({ name, cost, tier });
+    
+    showToast(`${name} registered in Registry.`, 'success');
+    playArise();
+    overlay.remove();
+    onComplete();
+  };
 }
 
 // ============================================
 // VIEW: PROFILE
-// ============================================
 function renderProfile(container) {
   const name = gameState.get('hunterName');
   const level = gameState.get('level');
