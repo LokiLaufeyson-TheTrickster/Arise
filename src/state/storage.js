@@ -4,7 +4,7 @@
 // ============================================
 
 const STORAGE_KEY = 'arise_v3_gamedata';
-const STORAGE_VERSION = 1;
+const STORAGE_VERSION = 3; // Bumped for customItems
 
 function getDefaultState() {
   return {
@@ -17,6 +17,12 @@ function getDefaultState() {
     essenceStones: 50,
     title: 'The Unawakened',
 
+    // RPG Stats
+    hp: 100,
+    hpMax: 100,
+    mp: 100,
+    mpMax: 100,
+
     // Attributes
     attributes: {
       str: 0, agi: 0, int: 0,
@@ -27,21 +33,35 @@ function getDefaultState() {
     stamina: 100,
     staminaMax: 100,
 
-    // Chain-Link
+    // Chain-Link & Streaks
     chainStreak: 0,
     chainLastTaskTime: null,
+    totalStreak: 0,
 
     // Bloodlust
     bloodlustStack: 0,
-    bloodlustTasks: [], // timestamps of Hard+ tasks
+    bloodlustTasks: [],
 
     // Tasks / Dungeons
     tasks: [],
     completedTasks: [],
+    dungeons: [],
 
     // Shadow Army
     shadows: [],
     equippedShadows: [],
+
+    // Inventory & Equipment
+    inventory: [],
+    customItems: [], // New for V4.0
+    equipment: {
+      head: null,
+      chest: null,
+      arms: null,
+      feet: null,
+      weapon: null,
+      accessory: null
+    },
 
     // Penalties
     penaltyActive: false,
@@ -64,6 +84,8 @@ function getDefaultState() {
       glitchTransitions: true,
       manaVeinsEnabled: true,
       fracturesEnabled: true,
+      openrouterKey: '',
+      pollinationsKey: '',
     },
 
     // Timestamps
@@ -76,15 +98,10 @@ export function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return getDefaultState();
-
     const data = JSON.parse(raw);
-
-    // Version migration
     if (data.version !== STORAGE_VERSION) {
       return migrateState(data);
     }
-
-    // Merge with defaults to handle missing keys
     return { ...getDefaultState(), ...data };
   } catch (e) {
     console.error('[Storage] Failed to load state:', e);
@@ -138,7 +155,6 @@ export function importState(file) {
 }
 
 function migrateState(oldData) {
-  // Future migrations go here
   const merged = { ...getDefaultState(), ...oldData, version: STORAGE_VERSION };
   saveState(merged);
   return merged;

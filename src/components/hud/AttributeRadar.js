@@ -19,7 +19,7 @@ export function drawRadarChart(canvas) {
 
   const cx = size / 2;
   const cy = size / 2;
-  const radius = size * 0.38;
+  const radius = size * 0.33; // Reduced from 0.38 for padding
   const attrs = gameState.get('attributes');
   const keys = Object.keys(ATTRIBUTES);
   const count = keys.length;
@@ -110,21 +110,20 @@ export function drawRadarChart(canvas) {
   // Draw labels
   for (let i = 0; i < count; i++) {
     const key = keys[i];
-    const info = ATTRIBUTES[key];
     const val = attrs[key] || 0;
     const rank = getStatRank(val);
     const angle = (Math.PI * 2 / count) * i - Math.PI / 2;
-    const labelR = radius + 28;
+    const labelR = radius + 32; // Increased padding for labels
     const x = cx + Math.cos(angle) * labelR;
     const y = cy + Math.sin(angle) * labelR;
 
-    ctx.font = '600 11px Rajdhani, sans-serif';
+    ctx.font = '700 10px Rajdhani, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = getStatRankColor(rank);
-    ctx.fillText(`${key.toUpperCase()} ${rank}`, x, y - 6);
+    ctx.fillText(`${key.toUpperCase()} [${rank}]`, x, y - 6);
 
-    ctx.font = '11px "Share Tech Mono", monospace';
+    ctx.font = '10px "Share Tech Mono", monospace';
     ctx.fillStyle = '#9CA3AF';
     ctx.fillText(val.toString(), x, y + 8);
   }

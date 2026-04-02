@@ -141,54 +141,73 @@
   height: 12px;
 }
 
-.task-card__tag--difficulty {
-  border: 1px solid;
-}
-
-.task-card__tag--category {
-  background: var(--shadow);
-  color: var(--silver);
-}
-
-.task-card__tag--stat {
-  color: var(--cyan);
-  border: 1px solid var(--cyan-border);
-}
-
-.task-card__tag--exp {
-  color: var(--gold);
-}
-
 .task-card__deadline {
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--ash);
-  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.task-card__difficulty {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 2px 10px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: bold;
+  border-radius: 0 0 0 var(--radius-md);
+  color: #fff;
+  text-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+
+/* ── Rank Variants ── */
+.task-card--e { border-color: rgba(255,255,255,0.1); }
+.task-card--d { border-color: var(--emerald); box-shadow: 0 0 10px rgba(0,230,118,0.1); }
+.task-card--c { border-color: var(--cyan); box-shadow: 0 0 15px rgba(0,229,255,0.15); }
+.task-card--b { border-color: var(--purple); box-shadow: 0 0 20px rgba(187,134,252,0.2); }
+.task-card--a { border-color: var(--gold); box-shadow: 0 0 25px rgba(255,215,0,0.25); }
+.task-card--s { 
+  border-color: var(--crimson); 
+  box-shadow: 0 0 35px rgba(255,23,68,0.3);
+  animation: sRankPulse 2s infinite alternate;
+}
+
+@keyframes sRankPulse {
+  0% { box-shadow: 0 0 20px rgba(255,23,68,0.2); border-color: var(--crimson); }
+  100% { box-shadow: 0 0 50px rgba(255,23,68,0.5); border-color: #ff5252; }
 }
 
 .task-card__actions {
   display: flex;
-  gap: var(--space-sm);
+  gap: var(--space-md);
   margin-top: var(--space-md);
-  padding-top: var(--space-md);
-  border-top: 1px solid rgba(255,255,255,0.05);
 }
 
-.task-card__action-btn {
-  flex: 1;
-  padding: var(--space-sm) var(--space-md);
-  font-size: var(--text-xs);
+.task-card__btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--ash);
+  padding: 6px;
   border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-xs);
 }
 
-.task-card__action-btn svg {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
+.task-card__btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.task-card__complete:hover {
+  background: var(--emerald);
+  border-color: var(--emerald);
+  box-shadow: 0 0 15px var(--emerald);
 }
 
 /* ── Task Creator Modal ── */

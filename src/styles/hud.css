@@ -125,21 +125,64 @@
 
 .status-level-row {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.status-bar-group {
+  display: flex;
   align-items: center;
   gap: var(--space-sm);
-  margin-top: 4px;
+  width: 100%;
 }
 
-.status-level {
+.status-label {
   font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  color: var(--cyan);
-  flex-shrink: 0;
+  font-size: 9px;
+  color: var(--ash);
+  width: 20px;
+  text-align: right;
 }
 
-.status-exp-bar {
+.status-bar {
   flex: 1;
-  height: 4px;
+  height: 6px;
+  background: rgba(255,255,255,0.05);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255,255,255,0.02);
+}
+
+.status-bar__fill {
+  height: 100%;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.status-bar__fill--hp {
+  background: linear-gradient(90deg, #FF1744, #D50000);
+  box-shadow: 0 0 10px rgba(255, 23, 68, 0.4);
+}
+
+.status-bar__fill--mp {
+  background: linear-gradient(90deg, #00E5FF, #2979FF);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+}
+
+.status-bar__fill--exp {
+  background: linear-gradient(90deg, #7B2FBE, #9D50BB);
+  box-shadow: 0 0 10px rgba(123, 47, 190, 0.4);
+  height: 3px;
+}
+
+.mana-flicker {
+  animation: mana-flicker 0.1s infinite alternate;
+}
+
+@keyframes mana-flicker {
+  0% { opacity: 0.8; filter: brightness(1); }
+  100% { opacity: 1; filter: brightness(1.5) drop-shadow(0 0 15px var(--cyan)); }
 }
 
 .status-exp-text {
