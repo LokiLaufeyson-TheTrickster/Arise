@@ -1459,16 +1459,15 @@ function showTaskCreator() {
   backdrop.id = 'task-creator-modal';
 
   let creatorMode = 'solo'; // solo | dungeon
-  let selectedRecurrence = 'none';
   let selectedCat = 'personal';
-  let rooms = [{ id: Date.now(), title: '', difficulty: 'normal', stat: 'wil' }];
+  let rooms = [{ id: Date.now(), title: '', difficulty: 'normal', stat: 'wil', nlp: null }];
 
   function render() {
     backdrop.innerHTML = `
       <div class="modal task-creator" style="max-height:90vh; overflow-y:auto; padding-top:var(--space-xl);">
         <div class="type-selector" style="display:grid; grid-template-columns:1fr 1fr; gap:var(--space-sm); margin-bottom:var(--space-xl);">
           <button class="type-tab ${creatorMode === 'solo' ? 'active' : ''}" data-mode="solo">Solo Quest</button>
-          <button class="type-tab ${creatorMode === 'dungeon' ? 'active' : ''}" data-mode="dungeon">Multi-Room Dungeon</button>
+          <button class="type-tab ${creatorMode === 'dungeon' ? 'active' : ''}" data-mode="dungeon">Dungeon</button>
         </div>
 
         <h2 class="task-creator__title">${creatorMode === 'solo' ? 'Initialize Solo Quest' : 'Spawn New Dungeon'}</h2>
@@ -1476,15 +1475,14 @@ function showTaskCreator() {
         ${creatorMode === 'dungeon' ? `
           <div class="task-creator__field">
             <label class="task-creator__label">Dungeon Designation</label>
-            <input type="text" id="tc-dungeon-name" placeholder="e.g. Project Arise, Daily Grind..." autocomplete="off" />
+            <input type="text" id="tc-dungeon-name" placeholder="Name your project..." autocomplete="off" />
           </div>
         ` : ''}
 
-        <div class="task-creator__field">
-          <label class="task-creator__label">Mission Category</label>
-          <div class="task-creator__category-grid">
+        <div class="task-creator__field" style="margin-bottom:var(--space-md)">
+          <div class="task-creator__category-grid mini">
             ${CATEGORIES.map(c => `
-              <button class="category-option ${c.key === selectedCat ? 'selected' : ''}" data-cat="${c.key}">
+              <button class="category-option mini ${c.key === selectedCat ? 'selected' : ''}" data-cat="${c.key}">
                 <img src="${c.icon}" class="category-icon-img" alt="${c.label}" />
                 <span>${c.label}</span>
               </button>
@@ -1492,46 +1490,57 @@ function showTaskCreator() {
           </div>
         </div>
 
-        <div class="task-creator__field">
-          <label class="task-creator__label">Recurrence Cycle</label>
-          <div class="cycle-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:var(--space-sm);">
-            ${['none', 'daily', 'weekly'].map(r => `
-              <button class="cycle-option ${r === selectedRecurrence ? 'selected' : ''}" data-rec="${r}">
-                ${r.toUpperCase()}
-              </button>
-            `).join('')}
-          </div>
-        </div>
-
-        <div class="task-creator__separator">${creatorMode === 'solo' ? 'Quest Objective' : 'Dungeon Rooms'}</div>
+        <div class="task-creator__separator">${creatorMode === 'solo' ? 'Objective' : 'Dungeon Rooms'}</div>
         
         <div id="tc-rooms-list">
           ${rooms.map((room, index) => `
-            <div class="tc-room-entry panel" data-index="${index}" style="margin-bottom:var(--space-md);">
-              <div style="display:flex; gap:var(--space-sm); align-items:center;">
-                <input type="text" class="tc-room-title" value="${room.title}" placeholder="${creatorMode === 'solo' ? 'What is your goal?' : 'Room Objective...'}" style="flex:1" />
-                ${creatorMode === 'dungeon' && rooms.length > 1 ? `<button class="btn-icon tc-remove-room" data-index="${index}">${ICONS.trash}</button>` : ''}
+            <div class="tc-room-entry panel" data-index="${index}" style="margin-bottom:var(--space-md); padding:var(--space-md)">
+              <div style="display:flex; flex-direction:column; gap:var(--space-xs);">
+                <div style="display:flex; gap:var(--space-sm); align-items:center;">
+                  <input type="text" class="tc-room-title" value="${room.title}" placeholder="What is your goal?" style="flex:1" />
+                  ${creatorMode === 'dungeon' && rooms.length > 1 ? `<button class="btn-icon tc-remove-room" data-index="${index}">${ICONS.trash}</button>` : ''}
+                </div>
+                
+                <div class="nlp-feedback-area" style="min-height:20px; display:flex; gap:var(--space-sm); flex-wrap:wrap;">
+                   ${room.nlp && room.nlp.recurrence !== 'none' ? `
+                     <div class="nlp-suggestion-chip">
+                        ${ICONS.timer} RECURRING: ${room.nlp.recurrence}
+                        <span class="tc-clear-nlp" data-index="${index}" style="cursor:pointer; opacity:0.6">×</span>
+                     </div>
+                   ` : ''}
+                   ${room.nlp && room.nlp.date ? `
+                     <div class="nlp-suggestion-chip">
+                        ${ICONS.calendar} DUE: ${new Date(room.nlp.date).toLocaleDateString()}
+                        <span class="tc-clear-nlp" data-index="${index}" style="cursor:pointer; opacity:0.6">×</span>
+                     </div>
+                   ` : ''}
+                </div>
               </div>
               
-              <div class="tc-param-grid" style="margin-top:var(--space-md);">
-                <label class="task-creator__label" style="font-size:9px;">Difficulty</label>
-                <div class="tc-diff-selector" data-room-index="${index}">
-                  ${Object.entries(DIFFICULTY).map(([k, d]) => `
-                    <button class="tc-diff-btn ${room.difficulty === k ? 'selected' : ''}" data-diff="${k}" title="${d.label}" style="--rank-color:${d.color}">
-                      ${k.charAt(0).toUpperCase()}
-                    </button>
-                  `).join('')}
+              <div class="tc-param-grid" style="margin-top:var(--space-sm);">
+                <div style="display:flex; flex-direction:column; gap:4px">
+                  <label class="task-creator__label" style="font-size:10px;">Difficulty</label>
+                  <div class="tc-diff-selector big" data-room-index="${index}">
+                    ${Object.entries(DIFFICULTY).map(([k, d]) => `
+                      <button class="tc-diff-btn ${room.difficulty === k ? 'selected' : ''}" data-diff="${k}" style="--rank-color:${d.color}">
+                        ${k.charAt(0).toUpperCase()}
+                      </button>
+                    `).join('')}
+                  </div>
                 </div>
 
-                <label class="task-creator__label" style="margin-top:var(--space-sm); font-size:9px;">Primary Attribute</label>
-                <div class="tc-stat-selector" data-room-index="${index}">
-                  ${['str','agi','vit','int','sns','wil'].map(s => `
-                    <button class="tc-stat-btn ${room.stat === s ? 'selected' : ''}" data-stat="${s}" title="${s.toUpperCase()}">
-                      <img src="/stat_${s}.png" />
-                      <span>${s.toUpperCase()}</span>
-                    </button>
-                  `).join('')}
-                </div>
+                ${creatorMode === 'solo' ? `
+                  <div style="display:flex; flex-direction:column; gap:4px">
+                    <label class="task-creator__label" style="font-size:10px;">Attribute</label>
+                    <div class="tc-stat-selector" data-room-index="${index}">
+                      ${['str','agi','vit','int','sns','wil'].map(s => `
+                        <button class="tc-stat-btn ${room.stat === s ? 'selected' : ''}" data-stat="${s}" title="${s.toUpperCase()}">
+                          <img src="/stat_${s}.png" />
+                        </button>
+                      `).join('')}
+                    </div>
+                  </div>
+                ` : ''}
               </div>
             </div>
           `).join('')}
@@ -1541,67 +1550,17 @@ function showTaskCreator() {
           <button class="btn btn-ghost btn-full" id="tc-add-room" style="margin-top:var(--space-sm); font-size:11px; border-style:dashed;">+ Build Another Room</button>
         ` : ''}
 
-        <div style="display:flex;gap:var(--space-md);margin-top:var(--space-2xl)">
+        <div style="display:flex;gap:var(--space-md);margin-top:var(--space-xl)">
           <button class="btn btn-ghost btn-full" id="tc-cancel">Cancel</button>
-          <button class="btn btn-primary btn-full" id="tc-create">Awaken</button>
+          <button class="btn btn-primary btn-full btn-lg" id="tc-create">A R I S E</button>
         </div>
       </div>
     `;
 
-    // Re-attach all listeners
-    backdrop.querySelectorAll('.type-tab').forEach(tab => {
-      tab.onclick = () => {
-        creatorMode = tab.dataset.mode;
-        if (creatorMode === 'solo' && rooms.length > 1) rooms = [rooms[0]];
-        playClick();
-        render();
-      };
-    });
+    attachListeners();
+  }
 
-    backdrop.querySelectorAll('.category-option').forEach(opt => {
-      opt.onclick = () => {
-        selectedCat = opt.dataset.cat;
-        // Auto-sync stat based on category
-        const catData = CATEGORIES.find(c => c.key === selectedCat);
-        if (catData) {
-          const mainStat = Object.entries(catData.stats).sort((a,b) => b[1] - a[1])[0][0];
-          rooms.forEach(r => r.stat = mainStat);
-        }
-        playClick();
-        render();
-      };
-    });
-
-    backdrop.querySelectorAll('.cycle-option').forEach(opt => {
-      opt.onclick = () => {
-        selectedRecurrence = opt.dataset.rec;
-        playClick();
-        render();
-      };
-    });
-
-    backdrop.querySelector('#tc-add-room')?.addEventListener('click', () => {
-      syncFormState();
-      rooms.push({ id: Date.now(), title: '', difficulty: 'normal', stat: 'wil' });
-      playClick();
-      render();
-    });
-
-    backdrop.querySelectorAll('.tc-remove-room').forEach(btn => {
-      btn.onclick = () => {
-        syncFormState();
-        rooms.splice(btn.dataset.index, 1);
-        playClick();
-        render();
-      };
-    });
-
-    backdrop.querySelector('#tc-cancel').onclick = () => {
-      playClick();
-      backdrop.remove();
-    };
-
-    // Re-attach all listeners
+  function attachListeners() {
     backdrop.querySelectorAll('.type-tab').forEach(tab => {
       tab.onclick = () => {
         syncFormState();
@@ -1616,7 +1575,6 @@ function showTaskCreator() {
       opt.onclick = () => {
         syncFormState();
         selectedCat = opt.dataset.cat;
-        // Auto-sync stat based on category
         const catData = CATEGORIES.find(c => c.key === selectedCat);
         if (catData) {
           const mainStat = Object.entries(catData.stats).sort((a,b) => b[1] - a[1])[0][0];
@@ -1627,20 +1585,25 @@ function showTaskCreator() {
       };
     });
 
-    backdrop.querySelectorAll('.cycle-option').forEach(opt => {
-      opt.onclick = () => {
-        syncFormState();
-        selectedRecurrence = opt.dataset.rec;
-        playClick();
-        render();
+    backdrop.querySelectorAll('.tc-room-title').forEach(input => {
+      input.oninput = (e) => {
+        const idx = input.closest('.tc-room-entry').dataset.index;
+        rooms[idx].title = e.target.value;
+        const nlpResult = parseDeadline(e.target.value);
+        if (nlpResult && (nlpResult.date || nlpResult.recurrence !== 'none')) {
+          rooms[idx].nlp = nlpResult;
+          renderNLPChips(idx);
+        } else {
+          rooms[idx].nlp = null;
+          renderNLPChips(idx);
+        }
       };
     });
 
     backdrop.querySelectorAll('.tc-diff-btn').forEach(btn => {
       btn.onclick = () => {
-        syncFormState();
-        const roomIdx = btn.parentElement.dataset.roomIndex;
-        rooms[roomIdx].difficulty = btn.dataset.diff;
+        const idx = btn.closest('.tc-diff-selector').dataset.roomIndex;
+        rooms[idx].difficulty = btn.dataset.diff;
         playClick();
         render();
       };
@@ -1648,9 +1611,8 @@ function showTaskCreator() {
 
     backdrop.querySelectorAll('.tc-stat-btn').forEach(btn => {
       btn.onclick = () => {
-        syncFormState();
-        const roomIdx = btn.parentElement.dataset.roomIndex;
-        rooms[roomIdx].stat = btn.dataset.stat;
+        const idx = btn.closest('.tc-stat-selector').dataset.roomIndex;
+        rooms[idx].stat = btn.dataset.stat;
         playClick();
         render();
       };
@@ -1658,7 +1620,7 @@ function showTaskCreator() {
 
     backdrop.querySelector('#tc-add-room')?.addEventListener('click', () => {
       syncFormState();
-      rooms.push({ id: Date.now(), title: '', difficulty: 'normal', stat: 'wil' });
+      rooms.push({ id: Date.now(), title: '', difficulty: 'normal', stat: 'wil', nlp: null });
       playClick();
       render();
     });
@@ -1682,11 +1644,12 @@ function showTaskCreator() {
       const dungeonNameInput = backdrop.querySelector('#tc-dungeon-name');
       
       const finalRooms = rooms.filter(r => r.title.trim().length > 0).map(r => {
-        const nlp = parseDeadline(r.title);
+        const nlp = r.nlp || parseDeadline(r.title);
         return {
           ...r,
           title: nlp ? nlp.cleanTitle : r.title,
-          deadline: nlp ? nlp.date : null
+          deadline: nlp ? nlp.date : null,
+          recurrence: nlp ? nlp.recurrence : 'none'
         };
       });
       
@@ -1695,12 +1658,10 @@ function showTaskCreator() {
         return;
       }
 
-      const dungeonName = creatorMode === 'solo' ? finalRooms[0].title : (dungeonNameInput?.value || finalRooms[0].title);
-
       createDungeon({
-        title: dungeonName,
+        title: creatorMode === 'solo' ? finalRooms[0].title : (dungeonNameInput?.value || 'Active Dungeon'),
         category: selectedCat,
-        recurrence: selectedRecurrence,
+        recurrence: finalRooms[0].recurrence,
         rooms: finalRooms
       });
 
@@ -1711,14 +1672,40 @@ function showTaskCreator() {
     };
   }
 
+  function renderNLPChips(idx) {
+    const room = rooms[idx];
+    const area = backdrop.querySelector(`.tc-room-entry[data-index="${idx}"] .nlp-feedback-area`);
+    if (!area) return;
+    area.innerHTML = `
+       ${room.nlp && room.nlp.recurrence !== 'none' ? `
+         <div class="nlp-suggestion-chip">
+            ${ICONS.timer} RECURRING: ${room.nlp.recurrence}
+            <span class="tc-clear-nlp" data-index="${idx}" data-type="rec" style="cursor:pointer; opacity:0.6">×</span>
+         </div>
+       ` : ''}
+       ${room.nlp && room.nlp.date ? `
+         <div class="nlp-suggestion-chip">
+            ${ICONS.calendar} DUE: ${new Date(room.nlp.date).toLocaleDateString()}
+            <span class="tc-clear-nlp" data-index="${idx}" data-type="date" style="cursor:pointer; opacity:0.6">×</span>
+         </div>
+       ` : ''}
+    `;
+    
+    area.querySelectorAll('.tc-clear-nlp').forEach(btn => {
+      btn.onclick = () => {
+        if (btn.dataset.type === 'rec') rooms[idx].nlp.recurrence = 'none';
+        else rooms[idx].nlp.date = null;
+        renderNLPChips(idx);
+      };
+    });
+  }
+
   function syncFormState() {
     const roomEntries = backdrop.querySelectorAll('.tc-room-entry');
     roomEntries.forEach((entry, i) => {
       const titleInput = entry.querySelector('.tc-room-title');
       if (titleInput) rooms[i].title = titleInput.value;
     });
-    const dungeonNameInput = backdrop.querySelector('#tc-dungeon-name');
-    // Global dungeon name is handled during create
   }
 
   document.body.appendChild(backdrop);
@@ -2126,18 +2113,30 @@ function getRankColor(rank) {
 }
 
 export function parseDeadline(input) {
-  if (!input) return null;
+  if (!input) return { date: null, recurrence: 'none', cleanTitle: 'Untitled Quest' };
   const now = new Date();
   let lower = input.toLowerCase().trim();
   let cleanTitle = input;
   let targetDate = null;
+  let recurrence = 'none';
 
-  // 1. Relative Dates (today, tomorrow, tod, tom)
-  const relMap = {
-    'today': 0, 'tod': 0,
-    'tomorrow': 1, 'tom': 1
-  };
-  
+  // 1. Recurrence Detection (every day, daily, every monday, etc.)
+  if (/\bevery day\b|\bdaily\b/i.test(lower)) {
+    recurrence = 'daily';
+    cleanTitle = cleanTitle.replace(/\bevery day\b|\bdaily\b/gi, '').trim();
+  } else if (/\bevery week\b|\bweekly\b/i.test(lower)) {
+    recurrence = 'weekly';
+    cleanTitle = cleanTitle.replace(/\bevery week\b|\bweekly\b/gi, '').trim();
+  } else if (/\bevery month\b|\bmonthly\b/i.test(lower)) {
+    recurrence = 'monthly';
+    cleanTitle = cleanTitle.replace(/\bevery month\b|\bmonthly\b/gi, '').trim();
+  } else if (/\bevery (monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun)\b/i.test(lower)) {
+    recurrence = 'weekly';
+    cleanTitle = cleanTitle.replace(/\bevery (monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun)\b/gi, '').trim();
+  }
+
+  // 2. Relative Dates (today, tomorrow, tod, tom)
+  const relMap = { 'today': 0, 'tod': 0, 'tomorrow': 1, 'tom': 1 };
   for (const [key, offset] of Object.entries(relMap)) {
     const reg = new RegExp(`\\b${key}\\b`, 'i');
     if (reg.test(lower)) {
@@ -2150,7 +2149,7 @@ export function parseDeadline(input) {
     }
   }
 
-  // 2. Times (8pm, 4:30, 16:00, etc.)
+  // 3. Times (8pm, 16:00, etc.)
   const timeMatch = cleanTitle.match(/\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b/i);
   if (timeMatch && targetDate) {
     let hrs = parseInt(timeMatch[1]);
@@ -2177,12 +2176,15 @@ export function parseDeadline(input) {
     cleanTitle = cleanTitle.replace(timeMatch[0], '').trim();
   }
 
-  // Clean title
+  // Final Clean
   cleanTitle = cleanTitle.replace(/\s+/g, ' ').replace(/^[-–—]\s*/, '').trim();
   cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
 
-  if (!targetDate) return null;
-  return { date: targetDate.toISOString(), cleanTitle: cleanTitle || 'Untitled Quest' };
+  return { 
+    date: targetDate ? targetDate.toISOString() : null, 
+    recurrence,
+    cleanTitle: cleanTitle || 'Untitled Quest' 
+  };
 }
 
 function formatDeadline(isoString) {

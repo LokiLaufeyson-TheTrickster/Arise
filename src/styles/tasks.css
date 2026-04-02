@@ -651,6 +651,25 @@
   border: 1px solid rgba(255,255,255,0.05);
 }
 
+.tc-diff-btn {
+  flex: 1;
+  padding: 14px 0 !important;
+  font-size: 16px !important;
+  background: var(--black);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 8px !important;
+  font-family: var(--font-rajdhani);
+  font-weight: 800;
+  transition: all 0.3s;
+  color: var(--ash);
+}
+
+.tc-diff-btn:hover {
+  border-color: var(--rank-color);
+  color: var(--white);
+  transform: translateY(-2px);
+}
+
 .dungeon-card__cat-icon img,
 .cat-img-pulse {
   width: 100% !important;
@@ -765,9 +784,31 @@
   box-shadow: 0 0 10px rgba(0,229,255,0.2);
 }
 
-.tc-stat-btn.selected span {
+.category-option.mini {
+  padding: 4px 8px !important;
+  font-size: 9px !important;
+  border-radius: 4px !important;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.02);
+}
+
+.category-option.mini img {
+  width: 14px !important;
+  height: 14px !important;
+  object-fit: contain !important;
+}
+
+.category-option.mini span {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.category-option.mini.selected {
+  background: var(--cyan-subtle);
+  border-color: var(--cyan);
   color: var(--cyan);
-  font-weight: 900;
 }
 /* ── Store & Exchange ── */
 .store-card {
