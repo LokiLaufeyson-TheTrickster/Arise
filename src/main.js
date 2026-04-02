@@ -843,20 +843,29 @@ function showCustomRewardCreator(onComplete) {
   };
 
   overlay.querySelector('#confirm-custom-reward').onclick = async () => {
-    const name = overlay.querySelector('#custom-reward-name').value;
-    const cost = parseInt(overlay.querySelector('#custom-reward-cost').value);
-    const tier = overlay.querySelector('#custom-reward-tier').value;
+    const nameInput = overlay.querySelector('#custom-reward-name');
+    const costInput = overlay.querySelector('#custom-reward-cost');
+    const tierInput = overlay.querySelector('#custom-reward-tier');
+
+    const name = nameInput.value.trim();
+    const cost = parseInt(costInput.value);
+    const tier = tierInput.value;
 
     if (!name) return showToast('Reward name is required.', 'error');
 
-    const { addCustomReward } = await import('./engine/shop.js');
-    addCustomReward({ name, cost, tier });
-    
-    showToast(`${name} registered in Registry.`, 'success');
-    pulseManaVeins();
-    playArise();
-    overlay.remove();
-    onComplete();
+    try {
+      const { addCustomReward } = await import('./engine/shop.js');
+      await addCustomReward({ name, cost, tier });
+      
+      showToast(`${name} registered in Registry.`, 'success');
+      pulseManaVeins();
+      playArise();
+      overlay.remove();
+      onComplete();
+    } catch (err) {
+      console.error('Registry failure:', err);
+      showToast('System Error: Failed to register reward.', 'error');
+    }
   };
 }
 
@@ -1111,7 +1120,8 @@ function renderSettings(container) {
   });
 
   // Save Gemini Key
-  document.getElementById('save-gemini-key')?.addEventListener('click', (e) => {
+  const saveGeminiBtn = document.getElementById('save-gemini-key');
+  saveGeminiBtn?.addEventListener('click', async (e) => {
     playClick();
     const input = document.getElementById('gemini-key-input');
     const key = input.value.trim();
@@ -1121,21 +1131,68 @@ function renderSettings(container) {
       return;
     }
 
+    const btn = e.currentTarget;
+    const oldText = btn.textContent;
+    btn.disabled = true;
+    btn.innerHTML = 'Syncing...';
+
     const settings = gameState.get('settings') || {};
     settings.geminiKey = key;
     gameState.set('settings', { ...settings });
-    gameState.forceSave();
     
+    try {
+      await gameState.forceSave();
+      btn.textContent = 'Saved!';
+      btn.style.background = 'var(--cyan)';
+      showToast('System Awakened', 'success');
+    } catch (err) {
+      showToast('Sync Failed', 'error');
+    } finally {
+      btn.disabled = false;
+      setTimeout(() => {
+        btn.textContent = oldText;
+        btn.style.background = '';
+      }, 2000);
+    }
+  });
+
+  // Save OpenRouter Key
+  const saveORBtn = document.getElementById('save-openrouter-key');
+  saveORBtn?.addEventListener('click', async (e) => {
+    playClick();
+    const input = document.getElementById('openrouter-key-input');
+    const key = input.value.trim();
+    
+    if (!key) {
+      showToast('Key cannot be empty', 'error');
+      return;
+    }
+
     const btn = e.currentTarget;
     const oldText = btn.textContent;
-    btn.textContent = 'Saved!';
-    btn.style.background = 'var(--cyan)';
-    setTimeout(() => {
-      btn.textContent = oldText;
-      btn.style.background = '';
-    }, 1500);
+    btn.disabled = true;
+    btn.innerHTML = 'Syncing...';
 
-    if (key) showToast('System Awakened', 'success');
+    const settings = gameState.get('settings') || {};
+    settings.openRouterKey = key;
+    // Also set as geminiKey for backward compatibility in engine
+    settings.geminiKey = key;
+    gameState.set('settings', { ...settings });
+    
+    try {
+      await gameState.forceSave();
+      btn.textContent = 'Saved!';
+      btn.style.background = 'var(--cyan)';
+      showToast('System Link Finalized', 'success');
+    } catch (err) {
+      showToast('Link Failed', 'error');
+    } finally {
+      btn.disabled = false;
+      setTimeout(() => {
+        btn.textContent = oldText;
+        btn.style.background = '';
+      }, 2000);
+    }
   });
 
   // Save Pollinations Key

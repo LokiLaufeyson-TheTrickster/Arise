@@ -619,12 +619,69 @@
   border-color: var(--cyan-border);
 }
 
-.tab-item.active {
-  background: var(--cyan-subtle);
-  border-color: var(--cyan);
-  color: var(--cyan);
-  box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+/* ── Dungeon Cards & Icons ── */
+.dungeon-card {
+  padding: 0;
+  margin-bottom: var(--space-lg);
+  overflow: hidden;
+  border-left: 4px solid var(--cyan);
+  background: var(--panel-bg);
+  border-radius: var(--radius-md);
+  position: relative;
+}
+
+.dungeon-card__header {
+  padding: var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.dungeon-card__cat-icon {
+  width: 44px !important;
+  height: 44px !important;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.dungeon-card__cat-icon img,
+.cat-img-pulse {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block;
+}
+
+.dungeon-card__title {
+  font-family: var(--font-display);
+  font-size: 14px;
   font-weight: var(--weight-bold);
+  color: var(--white);
+  letter-spacing: 0.02em;
+  margin-bottom: 2px;
+}
+
+.dungeon-card__subtitle {
+  font-family: var(--font-rajdhani);
+  font-size: 10px;
+  color: var(--ash);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.7;
+}
+
+/* ── HUD Sizing ── */
+.hud-dungeon-icon {
+  width: 32px !important;
+  height: 32px !important;
+  object-fit: contain !important;
 }
 
 /* ── Task Creator Premium Selectors ── */

@@ -93,7 +93,7 @@ export function getShopItems() {
   return [...SHOP_ITEMS, ...custom];
 }
 
-export function addCustomReward({ name, cost, desc = '', tier = 'E' }) {
+export async function addCustomReward({ name, cost, desc = '', tier = 'E' }) {
   const custom = gameState.get('customRewards') || [];
   const newReward = {
     id: `custom_${Date.now()}`,
@@ -106,6 +106,7 @@ export function addCustomReward({ name, cost, desc = '', tier = 'E' }) {
   };
   
   gameState.set('customRewards', [newReward, ...custom]);
+  await gameState.forceSave();
   return newReward;
 }
 
