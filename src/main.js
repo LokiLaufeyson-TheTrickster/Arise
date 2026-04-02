@@ -16,7 +16,7 @@ import { ATTRIBUTES, getAttributeSummary, getStatRank, getStatRankColor, getChai
 import { DIFFICULTY, CATEGORIES, expForLevel, getRankForLevel, getLevelProgress, awardEXP, awardStones, spendStones } from './engine/rankSystem.js';
 import { getChainMultiplier, getChainTimeRemaining, isChainActive, formatMultiplier } from './engine/chainLink.js';
 import { getBloodlustMultiplier, isBloodlustActive } from './engine/bloodlust.js';
-import { createTask, completeTask, deleteTask, getActiveTasks, twoMinGiveUp, twoMinAriseComplete, getDeadlineBleed } from './engine/questEngine.js';
+import { createDungeon, completeRoom, deleteRoom, getActiveDungeons, getDungeonRooms, twoMinGiveUp, twoMinAriseComplete } from './engine/questEngine.js';
 import { canExtract, getExtractionCost, performExtraction, equipShadow, unequipShadow, getTierLabel, getTierColor, getBuffDescription } from './engine/gacha.js';
 import { isPenaltyActive, getPenaltyTimeRemaining, formatPenaltyTime, activatePenalty, clearPenalty, startEssenceDrain, completeEssenceDrain } from './engine/penalty.js';
 import { playClick, playTaskComplete, playLevelUp, playGachaPull, playGachaReveal, playPenaltyAlert, playHeartbeat, playArise, playTimerComplete, playChainBreak, initAudio } from './audio/soundEngine.js';
@@ -327,7 +327,7 @@ function renderDashboard(container) {
   const bloodMult = getBloodlustMultiplier();
   const bloodActive = isBloodlustActive();
   const attrs = getAttributeSummary();
-  const activeTasks = getActiveTasks();
+  const dungeons = getActiveDungeons();
 
   const maxHp = getMaxHp();
   const maxMp = getMaxMp();
@@ -459,7 +459,7 @@ function renderDashboard(container) {
 // VIEW: DUNGEONS
 // ============================================
 function renderDungeons(container) {
-  const tasks = getActiveTasks();
+  const dungeons = getActiveDungeons();
 
   container.innerHTML = `
     <div class="section-header">
@@ -1183,7 +1183,7 @@ function renderDungeonHTML(dungeon, showActions = false) {
 
 function renderRoomHTML(room, showActions = false) {
   const diff = DIFFICULTY[room.difficulty] || DIFFICULTY.normal;
-  const bleed = getDeadlineBleed ? getDeadlineBleed(room) : 0;
+  const bleed = 0; // Legacy bleed removed for V4.0
   const deadlineClass = bleed > 0.8 ? 'deadline-critical' : bleed > 0.5 ? 'deadline-near' : '';
   
   return `

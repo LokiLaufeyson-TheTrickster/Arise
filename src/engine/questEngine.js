@@ -199,3 +199,46 @@ export function getDungeonRooms(dungeonId) {
   const rooms = gameState.get('tasks') || [];
   return rooms.filter(r => r.dungeonId === dungeonId);
 }
+
+/**
+ * Two-Minute Rule: Failure/Give Up Logic
+ */
+export function twoMinGiveUp(roomId) {
+  const rooms = gameState.get('tasks') || [];
+  const room = rooms.find(r => r.id === roomId);
+  if (!room) return;
+
+  // Tiny consolation reward for surviving the 2m stare-down
+  awardStones(1);
+  
+  // Close the room
+  room.status = 'failed';
+  room.completedAt = new Date().toISOString();
+  gameState.set('tasks', [...rooms]);
+  
+  // Check dungeon
+  checkDungeonClear(room.dungeonId);
+}
+
+/**
+ * Two-Minute Rule: Arise/Success Logic
+ */
+export function twoMinAriseComplete(roomId) {
+  const rooms = gameState.get('tasks') || [];
+  const room = rooms.find(r => r.id === roomId);
+  if (!room) return null;
+
+  // Massive rewards for those who ARISE from a penalty
+  const stones = awardStones(25);
+  const expRes = awardEXP(200); // Fixed high EXP for Arise success
+  
+  // Update attributes (WIL bonus)
+  import('./attributes.js').then(attr => attr.addAttributePoints('wil', 5));
+
+  room.status = 'completed';
+  room.completedAt = new Date().toISOString();
+  gameState.set('tasks', [...rooms]);
+
+  checkDungeonClear(room.dungeonId);
+  return { ...expRes, stonesEarned: stones, statGained: 'wil' };
+}
