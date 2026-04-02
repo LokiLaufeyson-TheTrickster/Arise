@@ -6,7 +6,7 @@
 import gameState from '../state/gameState.js';
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const DEFAULT_MODEL = 'google/gemini-2.0-flash-exp:free'; // High reliability free model
+const DEFAULT_MODEL = 'stepfun/step-3.5-flash:free';
 
 function getApiKey() {
   const settings = gameState.get('settings') || {};

@@ -754,8 +754,8 @@ async function renderStore(container) {
     </div>
 
     ${storeCategory === 'reward' ? `
-      <div style="margin-top:var(--space-md); padding:0 var(--space-md)">
-        <button class="btn btn-secondary" id="open-custom-reward-btn" style="width:100%; gap:var(--space-sm); border-style: dashed; background: rgba(0,229,255,0.02)">
+      <div style="margin-top:var(--space-lg); padding:0 var(--space-sm)">
+        <button id="open-custom-reward-btn" style="width:100%; display:flex; align-items:center; justify-content:center; gap:10px; padding:16px 20px; background:rgba(0,229,255,0.06); border:2px dashed var(--cyan); border-radius:var(--radius-md); color:var(--cyan); font-family:var(--font-display); font-weight:700; font-size:14px; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; transition:all 0.2s ease;">
           ${ICONS.plus} Register Custom Reward
         </button>
       </div>
@@ -1532,7 +1532,7 @@ function showTaskCreator() {
               <div style="display:flex; flex-direction:column; gap:var(--space-xs);">
                 <div style="display:flex; gap:var(--space-sm); align-items:center;">
                   <input type="text" class="tc-room-title" value="${room.title}" placeholder="What is your goal?" style="flex:1" />
-                  ${creatorMode === 'dungeon' && rooms.length > 1 ? `<button class="btn-icon tc-remove-room" data-index="${index}">${ICONS.trash}</button>` : ''}
+                  ${creatorMode === 'dungeon' && rooms.length > 1 ? `<button class="tc-remove-room" data-index="${index}" style="background:transparent; border:none; cursor:pointer; padding:6px; display:flex; align-items:center; justify-content:center; color:var(--crimson); filter:drop-shadow(0 0 4px rgba(255,50,50,0.4)); transition:opacity 0.2s;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>` : ''}
                 </div>
                 
                 <div class="nlp-feedback-area" style="min-height:20px; display:flex; gap:var(--space-sm); flex-wrap:wrap;">
@@ -1743,12 +1743,12 @@ function showTwoMinRule(taskId) {
   let phase = 'countdown'; // countdown | choice | arise
 
   overlay.innerHTML = `
-    <div class="two-min-content">
+    <div class="two-min-content" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; width:100%; max-width:350px; margin:0 auto;">
       <div class="two-min-timer" id="tmr-clock">02:00</div>
       <div class="two-min-status" id="tmr-status">SYSTEM MONITORING...</div>
       <div class="two-min-message" id="tmr-msg">Overcome the obstacle. Do not look away.</div>
-      <div class="two-min-actions" id="tmr-actions">
-        <button class="btn btn-ghost btn-sm" id="tmr-yield" style="color:var(--ash); border-color:rgba(255,255,255,0.1)">
+      <div class="two-min-actions" id="tmr-actions" style="width:100%; display:flex; flex-direction:column; align-items:center;">
+        <button class="btn btn-ghost btn-sm" id="tmr-yield" style="color:var(--ash); border-color:rgba(255,255,255,0.1); width:100%; max-width:320px;">
           I can't even for 2m... I give up
         </button>
       </div>
