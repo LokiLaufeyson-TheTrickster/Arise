@@ -745,9 +745,14 @@ async function renderStore(container) {
         
         return `
           <div class="store-card panel ${isLocked ? 'locked' : ''}" data-tier="${item.tier}">
-            <div class="store-card__header">
+            <div class="store-card__header" style="position:relative;">
               <div class="store-card__icon">${item.icon}</div>
               <div class="store-card__tier" style="color:${getTierColor(item.tier)}">${item.tier}-Rank</div>
+              ${item.id.toString().startsWith('custom_') ? `
+                <button class="store-remove-reward-btn" data-id="${item.id}" style="position:absolute; top:8px; right:8px; background:transparent; border:none; cursor:pointer; padding:6px; display:flex; align-items:center; justify-content:center; color:var(--crimson); filter:drop-shadow(0 0 4px rgba(255,50,50,0.4)); transition:opacity 0.2s;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              ` : ''}
             </div>
             <div class="store-card__body">
               <div class="store-card__name">${item.name}</div>
@@ -804,6 +809,17 @@ async function renderStore(container) {
       } else {
         showToast(result.message, 'error');
       }
+    });
+  });
+
+  // Listener for deleting custom rewards
+  container.querySelectorAll('.store-remove-reward-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      removeCustomReward(btn.dataset.id);
+      playClick();
+      showToast('Custom reward removed from System.', 'info');
+      renderStore(container);
     });
   });
 
