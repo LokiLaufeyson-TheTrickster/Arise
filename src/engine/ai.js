@@ -10,8 +10,7 @@ const DEFAULT_MODEL = 'google/gemini-2.0-flash-exp:free'; // High reliability fr
 
 function getApiKey() {
   const settings = gameState.get('settings') || {};
-  // provided fallback for testing, user can override in settings
-  return settings.openRouterKey || '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';
+  return settings.openRouterKey || null;
 }
 
 /**
