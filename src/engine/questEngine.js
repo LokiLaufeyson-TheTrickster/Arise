@@ -150,32 +150,86 @@ function checkDungeonClear(dungeonId) {
 export function parseDeadline(input) {
   if (!input) return null;
   const now = new Date();
-  const lower = input.toLowerCase().trim();
   
-  // Basic absolute dates
-  if (lower === 'tod' || lower === 'today') {
-    return new Date(now.setHours(23, 59, 0, 0));
-  }
-  if (lower === 'tom' || lower === 'tomorrow') {
-    const tom = new Date(now);
-    tom.setDate(now.getDate() + 1);
-    return new Date(tom.setHours(23, 59, 0, 0));
-  }
-
-  // Days of week
-  const days = { sun:0, mon:1, tue:2, wed:3, thu:4, fri:5, sat:6, sunday:0, monday:1, tuesday:2, wednesday:3, thursday:4, friday:5, saturday:6 };
-  for (const [day, val] of Object.entries(days)) {
-    if (lower.includes(day)) {
-      const target = new Date(now);
-      const diff = (val + 7 - now.getDay()) % 7;
-      target.setDate(now.getDate() + (diff === 0 ? 7 : diff));
-      return new Date(target.setHours(23, 59, 0, 0));
+  let cleanTitle = input;
+  let date = null;
+  let recurrence = 'none';
+  
+  const recRegex = /\b(?:every|recurring)\s+(day|daily|weekly|week|month|monthly|mon|tue|wed|thu|fri|sat|sun)\b/i;
+  const standaloneRec = /\b(daily|weekly|monthly)\b/i;
+  
+  let match = cleanTitle.match(recRegex);
+  if (match) {
+    recurrence = match[1].toLowerCase().replace('day', 'daily').replace('week', 'weekly').replace('month', 'monthly');
+    cleanTitle = cleanTitle.replace(match[0], '').trim();
+  } else {
+    match = cleanTitle.match(standaloneRec);
+    if (match) {
+      recurrence = match[1].toLowerCase();
+      cleanTitle = cleanTitle.replace(match[0], '').trim();
     }
   }
 
-  // Fallback to standard JS Date parsing
-  const parsed = new Date(input);
-  return isNaN(parsed.getTime()) ? null : parsed;
+  const exactDateRegex = /\b(\d{1,2}(?:st|nd|rd|th)?)\s+(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\b/i;
+  match = cleanTitle.match(exactDateRegex);
+  if (match) {
+    const dStr = match[1].replace(/\D/g, '') + ' ' + match[2] + ' ' + now.getFullYear();
+    const parsed = new Date(dStr);
+    if (!isNaN(parsed.getTime())) {
+      date = parsed;
+      cleanTitle = cleanTitle.replace(match[0], '').trim();
+    }
+  }
+
+  const dowRegex = /\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun)\b/i;
+  if (!date) {
+    match = cleanTitle.match(dowRegex);
+    if (match) {
+      const days = { sun:0, mon:1, tue:2, wed:3, thu:4, fri:5, sat:6, sunday:0, monday:1, tuesday:2, wednesday:3, thursday:4, friday:5, saturday:6 };
+      const val = days[match[1].toLowerCase()];
+      if (val !== undefined) {
+        const target = new Date(now);
+        const diff = (val + 7 - now.getDay()) % 7;
+        target.setDate(now.getDate() + (diff === 0 ? 7 : diff));
+        target.setHours(23, 59, 0, 0);
+        date = target;
+        cleanTitle = cleanTitle.replace(match[0], '').trim();
+      }
+    }
+  }
+
+  const relRegex = /\b(today|tod|tomorrow|tom)\b/i;
+  if (!date) {
+    match = cleanTitle.match(relRegex);
+    if (match) {
+      const p = match[1].toLowerCase();
+      const target = new Date(now);
+      if (p === 'tom' || p === 'tomorrow') {
+        target.setDate(target.getDate() + 1);
+      }
+      target.setHours(23, 59, 0, 0);
+      date = target;
+      cleanTitle = cleanTitle.replace(match[0], '').trim();
+    }
+  }
+
+  const timeRegex = /(?:at\s+)?\b(\d{1,2})(?::(\d{2}))?\s*(am|pm|a|p)?\b/i;
+  match = cleanTitle.match(timeRegex);
+  if (match) {
+    let hours = parseInt(match[1]);
+    const mins = match[2] ? parseInt(match[2]) : 0;
+    const ampm = match[3] ? match[3].toLowerCase() : '';
+    
+    if (ampm.startsWith('p') && hours < 12) hours += 12;
+    if (ampm.startsWith('a') && hours === 12) hours = 0;
+    
+    if (!date) date = new Date(now);
+    date.setHours(hours, mins, 0, 0);
+    cleanTitle = cleanTitle.replace(match[0], '').trim();
+  }
+
+  if (!date && recurrence === 'none') return null;
+  return { date: date ? date.toISOString() : null, recurrence, cleanTitle };
 }
 
 export function deleteRoom(roomId) {

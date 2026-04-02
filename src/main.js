@@ -1366,7 +1366,7 @@ function renderRoomHTML(room, showActions = false) {
         </div>
         ${showActions && room.status !== 'completed' ? `
           <div class="room-item__actions">
-            <button class="room-item__action-btn" data-action="abandon-room" data-room-id="${room.id}" style="color:var(--crimson)">
+            <button class="room-item__action-btn" data-action="abandon-room" data-room-id="${room.id}" style="color:var(--crimson); background:transparent; border:none; padding:4px; display:flex; align-items:center; justify-content:center; cursor:pointer; opacity:0.8; transition:opacity 0.2s;">
               ${ICONS.trash}
             </button>
           </div>
@@ -1537,14 +1537,14 @@ function showTaskCreator() {
                 
                 <div class="nlp-feedback-area" style="min-height:20px; display:flex; gap:var(--space-sm); flex-wrap:wrap;">
                    ${room.nlp && room.nlp.recurrence !== 'none' ? `
-                     <div class="nlp-suggestion-chip">
+                     <div class="nlp-suggestion-chip" style="font-family:var(--font-rajdhani); letter-spacing:0.5px; font-weight:600;">
                         ${ICONS.timer} RECURRING: ${room.nlp.recurrence}
                         <span class="tc-clear-nlp" data-index="${index}" style="cursor:pointer; opacity:0.6">×</span>
                      </div>
                    ` : ''}
                    ${room.nlp && room.nlp.date ? `
-                     <div class="nlp-suggestion-chip">
-                        ${ICONS.calendar} DUE: ${new Date(room.nlp.date).toLocaleDateString()}
+                     <div class="nlp-suggestion-chip" style="font-family:var(--font-rajdhani); letter-spacing:0.5px; font-weight:600;">
+                        ${ICONS.calendar} DUE: ${new Date(room.nlp.date).toLocaleString([], {dateStyle:'short', timeStyle:'short'})}
                         <span class="tc-clear-nlp" data-index="${index}" style="cursor:pointer; opacity:0.6">×</span>
                      </div>
                    ` : ''}
@@ -1555,12 +1555,16 @@ function showTaskCreator() {
                 <div style="display:flex; flex-direction:column; gap:8px">
                   <label class="task-creator__label">Difficulty Level</label>
                   <div class="tc-diff-selector" data-room-index="${index}" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
-                    ${Object.entries(DIFFICULTY).map(([k, d]) => `
-                      <button class="tc-diff-btn ${room.difficulty === k ? 'selected' : ''}" data-diff="${k}" style="--rank-color:${d.color}; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:12px; border-radius:8px;">
+                    ${Object.entries(DIFFICULTY).map(([k, d]) => {
+                      const isSelected = room.difficulty === k;
+                      const lightTheme = k === 'easy' || k === 'ultra';
+                      const textColor = isSelected ? (lightTheme ? 'var(--black)' : 'var(--white)') : 'var(--ash)';
+                      return `
+                      <button class="tc-diff-btn ${isSelected ? 'selected' : ''}" data-diff="${k}" style="--rank-color:${d.color}; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:12px; border-radius:8px; color:${textColor};">
                         <span style="font-weight:800; font-size:12px;">${d.label.toUpperCase()}</span>
-                        <span style="font-weight:600; font-size:9px; opacity:0.7; margin-top:2px;">+${d.exp} EXP</span>
+                        <span style="font-weight:600; font-size:9px; opacity:0.8; margin-top:2px;">+${d.exp} EXP</span>
                       </button>
-                    `).join('')}
+                    `}).join('')}
                   </div>
                 </div>
               </div>
@@ -1692,14 +1696,14 @@ function showTaskCreator() {
     if (!area) return;
     area.innerHTML = `
        ${room.nlp && room.nlp.recurrence !== 'none' ? `
-         <div class="nlp-suggestion-chip">
+         <div class="nlp-suggestion-chip" style="font-family:var(--font-rajdhani); letter-spacing:0.5px; font-weight:600;">
             ${ICONS.timer} RECURRING: ${room.nlp.recurrence}
             <span class="tc-clear-nlp" data-index="${idx}" data-type="rec" style="cursor:pointer; opacity:0.6">×</span>
          </div>
        ` : ''}
        ${room.nlp && room.nlp.date ? `
-         <div class="nlp-suggestion-chip">
-            ${ICONS.calendar} DUE: ${new Date(room.nlp.date).toLocaleDateString()}
+         <div class="nlp-suggestion-chip" style="font-family:var(--font-rajdhani); letter-spacing:0.5px; font-weight:600;">
+            ${ICONS.calendar} DUE: ${new Date(room.nlp.date).toLocaleString([], {dateStyle:'short', timeStyle:'short'})}
             <span class="tc-clear-nlp" data-index="${idx}" data-type="date" style="cursor:pointer; opacity:0.6">×</span>
          </div>
        ` : ''}
