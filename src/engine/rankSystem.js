@@ -24,10 +24,36 @@ export const DIFFICULTY = {
 };
 
 export const CATEGORIES = [
-  { key: 'work', label: 'Work', icon: '<img src="/cat_work.png" style="width:28px;height:28px;object-fit:contain;vertical-align:middle" alt="Work">' },
-  { key: 'fitness', label: 'Fitness', icon: '<img src="/cat_fitness.png" style="width:28px;height:28px;object-fit:contain;vertical-align:middle" alt="Fitness">' },
-  { key: 'study', label: 'Study', icon: '<img src="/cat_study.png" style="width:28px;height:28px;object-fit:contain;vertical-align:middle" alt="Study">' },
-  { key: 'personal', label: 'Personal', icon: '<img src="/cat_personal.png" style="width:28px;height:28px;object-fit:contain;vertical-align:middle" alt="Personal">' },
+  { 
+    key: 'work', label: 'Work', icon: '💼', 
+    stats: { int: 0.7, wil: 0.3 },
+    desc: 'Professional missions that sharpen the mind and resolve.'
+  },
+  { 
+    key: 'fitness', label: 'Fitness', icon: '⚡', 
+    stats: { vit: 0.7, str: 0.3 },
+    desc: 'Physical trials to transcend human limits.'
+  },
+  { 
+    key: 'study', label: 'Study', icon: '📚', 
+    stats: { int: 0.7, sns: 0.3 },
+    desc: 'Acquiring forbidden knowledge and heightened perception.'
+  },
+  { 
+    key: 'social', label: 'Social', icon: '🤝', 
+    stats: { sns: 0.7, agi: 0.3 },
+    desc: 'Interactions that hone your instincts and movement.'
+  },
+  { 
+    key: 'personal', label: 'Personal', icon: '🧘', 
+    stats: { wil: 0.7, agi: 0.3 },
+    desc: 'Self-discipline and flexibility of character.'
+  },
+  { 
+    key: 'hobby', label: 'Hobby', icon: '🎨', 
+    stats: { str: 0.5, sns: 0.5 },
+    desc: 'Specialized skills that balance power and precision.'
+  }
 ];
 
 // EXP needed for a given level

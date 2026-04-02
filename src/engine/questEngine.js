@@ -1,334 +1,201 @@
 // ============================================
-// ARISE V3.0 — Quest Engine
-// Task lifecycle, 2-Minute Rule, completion
+// ARISE V4.0 — Quest & Dungeon Engine
+// Dungeons (Groups), Rooms (Tasks), Recurrence
 // ============================================
 
 import gameState from '../state/gameState.js';
 import { DIFFICULTY, awardEXP, awardStones } from './rankSystem.js';
-import { addAttributePoints, getConcentrationMultiplier, getHiddenQuestChance } from './attributes.js';
+import { addAttributePoints, getConcentrationMultiplier, getHiddenQuestChance, consumeMp } from './attributes.js';
 import { extendChain, getChainMultiplier } from './chainLink.js';
 import { recordHardTask, getBloodlustMultiplier } from './bloodlust.js';
 
-let taskIdCounter = Date.now();
+let dungeonIdCounter = Date.now();
+let roomIdCounter = Date.now() + 1000;
 
 /**
- * Advanced NLP Deadline Parser
- * Detects: tod, tomorrow, mon, every wednesday, etc.
+ * Creates a new Dungeon (Group) containing one or more Rooms (Tasks)
  */
-export function parseDeadline(text) {
-  const now = new Date();
-  const lower = text.toLowerCase();
+export function createDungeon({ title, rooms = [], recurrence = 'none', category = 'personal' }) {
+  const dungeonId = `dungeon_${dungeonIdCounter++}`;
   
-  // Today
-  if (/\b(tod|today)\b/.test(lower)) {
-    return new Date(now.setHours(23, 59, 59, 999));
+  const newDungeon = {
+    id: dungeonId,
+    title,
+    category,
+    recurrence,
+    status: 'active',
+    createdAt: new Date().toISOString(),
+    completedAt: null,
+    roomIds: []
+  };
+
+  const allRooms = [];
+  
+  // If no rooms provided, create one default room (Solo Dungeon)
+  const roomData = rooms.length > 0 ? rooms : [{ title: title, difficulty: 'normal', stat: 'wil' }];
+
+  roomData.forEach(r => {
+    const roomId = `room_${roomIdCounter++}`;
+    const room = {
+      id: roomId,
+      dungeonId: dungeonId,
+      title: r.title,
+      difficulty: r.difficulty || 'normal',
+      stat: r.stat || 'wil',
+      deadline: r.deadline ? new Date(r.deadline).toISOString() : null,
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      completedAt: null
+    };
+    allRooms.push(room);
+    newDungeon.roomIds.push(roomId);
+  });
+
+  // Save to state
+  const dungeons = gameState.get('dungeons') || [];
+  const existingRooms = gameState.get('tasks') || []; // Rooms are stored in 'tasks' for backward compatibility
+  
+  gameState.batch({
+    dungeons: [newDungeon, ...dungeons],
+    tasks: [...allRooms, ...existingRooms]
+  });
+
+  return newDungeon;
+}
+
+/**
+ * Completes a Room (Task) within a Dungeon
+ */
+export async function completeRoom(roomId) {
+  const rooms = gameState.get('tasks') || [];
+  const roomIndex = rooms.findIndex(r => r.id === roomId);
+  if (roomIndex === -1) return null;
+
+  const room = rooms[roomIndex];
+  const diff = DIFFICULTY[room.difficulty] || DIFFICULTY.normal;
+
+  // Calculate rewards
+  const chainResult = extendChain();
+  const totalMult = chainResult.multiplier * getBloodlustMultiplier() * getConcentrationMultiplier();
+  
+  const finalExp = Math.round(diff.exp * totalMult);
+  const stonesEarned = awardStones(diff.stones);
+  const expResult = awardEXP(finalExp);
+  
+  // Award stat points based on category
+  const dungeons = gameState.get('dungeons') || [];
+  const dungeon = dungeons.find(d => d.id === room.dungeonId);
+  const category = (dungeon && dungeon.category) || room.category || 'personal';
+  
+  const { CATEGORIES } = await import('./rankSystem.js');
+  const catDef = CATEGORIES.find(c => c.key === category) || CATEGORIES[0];
+  
+  const statGained = [];
+  if (catDef.stats) {
+    for (const [statKey, ratio] of Object.entries(catDef.stats)) {
+      const points = Math.max(1, Math.round(diff.statBonus * ratio));
+      addAttributePoints(statKey, points);
+      statGained.push({ stat: statKey, points });
+    }
+  } else {
+    const points = addAttributePoints(room.stat || 'wil', diff.statBonus);
+    statGained.push({ stat: room.stat || 'wil', points });
   }
+
+  if (['hard', 'ultra', 'extreme'].includes(room.difficulty)) recordHardTask();
+
+  // Update room status
+  room.status = 'completed';
+  room.completedAt = new Date().toISOString();
+  gameState.set('tasks', [...rooms]);
+
+  // Check if Dungeon is cleared
+  checkDungeonClear(room.dungeonId);
+
+  return {
+    room,
+    expEarned: finalExp,
+    stonesEarned,
+    statGained,
+    ...expResult,
+    chainStreak: chainResult.streak
+  };
+}
+
+function checkDungeonClear(dungeonId) {
+  const dungeons = gameState.get('dungeons') || [];
+  const dungeon = dungeons.find(d => d.id === dungeonId);
+  if (!dungeon || dungeon.status === 'completed') return;
+
+  const rooms = gameState.get('tasks') || [];
+  const dungeonRooms = rooms.filter(r => r.dungeonId === dungeonId);
+  const allCleared = dungeonRooms.every(r => r.status === 'completed');
+
+  if (allCleared) {
+    dungeon.status = 'completed';
+    dungeon.completedAt = new Date().toISOString();
+    gameState.set('dungeons', [...dungeons]);
+    
+    // Recovery Bonus for clearing a full dungeon
+    import('./attributes.js').then(attr => {
+      attr.restoreMp(10);
+    });
+  }
+}
+
+/**
+ * NLP Deadline Parser
+ * Handles: today, tomorrow, every wednesday, wed, 5pm, etc.
+ */
+export function parseDeadline(input) {
+  if (!input) return null;
+  const now = new Date();
+  const lower = input.toLowerCase().trim();
   
-  // Tomorrow
-  if (/\b(tom|tomorrow|tmr)\b/.test(lower)) {
+  // Basic absolute dates
+  if (lower === 'tod' || lower === 'today') {
+    return new Date(now.setHours(23, 59, 0, 0));
+  }
+  if (lower === 'tom' || lower === 'tomorrow') {
     const tom = new Date(now);
-    tom.setDate(tom.getDate() + 1);
-    return new Date(tom.setHours(23, 59, 59, 999));
+    tom.setDate(now.getDate() + 1);
+    return new Date(tom.setHours(23, 59, 0, 0));
   }
 
   // Days of week
-  const days = {
-    sun: 0, sunday: 0,
-    mon: 1, monday: 1,
-    tue: 2, tuesday: 2,
-    wed: 3, wednesday: 3,
-    thu: 4, thursday: 4,
-    fri: 5, friday: 5,
-    sat: 6, saturday: 6
-  };
-
-  for (const [day, index] of Object.entries(days)) {
-    const regex = new RegExp(`\\b${day}\\b`);
-    if (regex.test(lower)) {
+  const days = { sun:0, mon:1, tue:2, wed:3, thu:4, fri:5, sat:6, sunday:0, monday:1, tuesday:2, wednesday:3, thursday:4, friday:5, saturday:6 };
+  for (const [day, val] of Object.entries(days)) {
+    if (lower.includes(day)) {
       const target = new Date(now);
-      const currentDay = target.getDay();
-      let diff = index - currentDay;
-      if (diff <= 0) diff += 7;
-      target.setDate(target.getDate() + diff);
-      return new Date(target.setHours(23, 59, 59, 999));
+      const diff = (val + 7 - now.getDay()) % 7;
+      target.setDate(now.getDate() + (diff === 0 ? 7 : diff));
+      return new Date(target.setHours(23, 59, 0, 0));
     }
   }
 
-  return null;
+  // Fallback to standard JS Date parsing
+  const parsed = new Date(input);
+  return isNaN(parsed.getTime()) ? null : parsed;
 }
 
-export function createTask({ 
-  title, 
-  difficulty = 'normal', 
-  category = 'personal', 
-  stat = 'int', 
-  deadline = null,
-  isDungeon = false,
-  dungeonId = null,
-  multiStats = []
-}) {
-  // Auto-detect deadline if not provided
-  const detectedDeadline = deadline || parseDeadline(title);
+export function deleteRoom(roomId) {
+  const rooms = gameState.get('tasks') || [];
+  const room = rooms.find(r => r.id === roomId);
+  
+  // Penalty for abandoning a quest or deleting a room
+  if (room && room.status === 'active') {
+    consumeMp(5); // MP Drain
+  }
 
-  const task = {
-    id: `task_${taskIdCounter++}`,
-    title: title.replace(/\b(tod|today|tom|tomorrow|tmr|mon|tue|wed|thu|fri|sat|sun|sunday|monday|tuesday|wednesday|thursday|friday|saturday|every)\b/gi, '').trim(), 
-    originalTitle: title,
-    difficulty,
-    category,
-    stat,
-    multiStats: multiStats.length > 0 ? multiStats : [stat],
-    deadline: detectedDeadline ? new Date(detectedDeadline).toISOString() : null,
-    isDungeon,
-    dungeonId,
-    createdAt: new Date().toISOString(),
-    completedAt: null,
-    status: 'active', // active | completed | failed
-    timerActive: false,
-    timerStartedAt: null,
-    timerDuration: null,
-  };
-
-  const tasks = gameState.get('tasks') || [];
-  tasks.unshift(task);
-  gameState.set('tasks', tasks);
-
-  return task;
+  gameState.set('tasks', rooms.filter(r => r.id !== roomId));
 }
 
-export function createDungeon({ 
-  title, 
-  rooms = [], // array of room titles
-  difficulty = 'normal', 
-  category = 'personal',
-  period = 'once', // once | daily | weekly | alt
-  active = true
-}) {
-  const dungeonId = `dungeon_${Date.now()}`;
-  const dungeon = {
-    id: dungeonId,
-    title,
-    difficulty,
-    category,
-    period,
-    active,
-    roomCount: rooms.length,
-    completedRooms: 0,
-    createdAt: new Date().toISOString()
-  };
-
-  // Create room tasks
-  rooms.forEach((roomTitle, index) => {
-    createTask({
-      title: `${title}: ${roomTitle}`,
-      difficulty,
-      category,
-      isDungeon: true,
-      dungeonId,
-      stat: 'str' // Base stat, AI will enhance
-    });
-  });
-
+export function getActiveDungeons() {
   const dungeons = gameState.get('dungeons') || [];
-  dungeons.push(dungeon);
-  gameState.set('dungeons', dungeons);
-
-  return dungeon;
+  return dungeons.filter(d => d.status === 'active');
 }
 
-export function completeTask(taskId) {
-  const tasks = gameState.get('tasks') || [];
-  const taskIndex = tasks.findIndex(t => t.id === taskId);
-  if (taskIndex === -1) return null;
-
-  const task = tasks[taskIndex];
-  const diff = DIFFICULTY[task.difficulty] || DIFFICULTY.normal;
-
-  // Calculate multipliers
-  const chainResult = extendChain();
-  const chainMult = chainResult.multiplier;
-  const bloodMult = getBloodlustMultiplier();
-  const concMult = getConcentrationMultiplier();
-  
-  // New: Streak Multiplier
-  const totalStreak = gameState.get('totalStreak') || 0;
-  const streakMult = 1 + (totalStreak * 0.01); // 1% per streak day
-  
-  const totalMult = chainMult * bloodMult * concMult * streakMult;
-
-  // Calculate rewards
-  const baseExp = diff.exp;
-  const finalExp = Math.round(baseExp * totalMult);
-  const stonesEarned = awardStones(diff.stones);
-
-  // Award EXP
-  const expResult = awardEXP(finalExp);
-
-  // New: Multi-Stat Rewards
-  const statsToGained = [];
-  const stats = task.multiStats || [task.stat];
-  const pointsPerStat = Math.max(1, Math.floor(diff.statBonus / stats.length));
-  
-  stats.forEach(s => {
-    const points = addAttributePoints(s, pointsPerStat);
-    statsToGained.push({ stat: s, points });
-  });
-
-  // Check for bloodlust (Hard+ tasks)
-  if (['hard', 'ultra', 'extreme'].includes(task.difficulty)) {
-    recordHardTask();
-  }
-
-  // Handle Dungeon Progress
-  if (task.isDungeon && task.dungeonId) {
-    const dungeons = gameState.get('dungeons') || [];
-    const dungeon = dungeons.find(d => d.id === task.dungeonId);
-    if (dungeon) {
-      dungeon.completedRooms++;
-      if (dungeon.completedRooms >= dungeon.roomCount) {
-        awardEXP(finalExp); // Bonus for dungeon clear
-        awardStones(10);
-      }
-      gameState.set('dungeons', dungeons);
-    }
-  }
-
-  // Update Global Streak
-  gameState.set('totalStreak', totalStreak + 1);
-
-  // Move task to completed
-  task.status = 'completed';
-  task.completedAt = new Date().toISOString();
-  tasks.splice(taskIndex, 1);
-  gameState.set('tasks', tasks);
-
-  const completed = gameState.get('completedTasks') || [];
-  completed.unshift(task);
-  if (completed.length > 100) completed.length = 100;
-  gameState.set('completedTasks', completed);
-  gameState.set('totalTasksCompleted', (gameState.get('totalTasksCompleted') || 0) + 1);
-
-  return {
-    task,
-    expEarned: finalExp,
-    stonesEarned,
-    statsGained: statsToGained,
-    chainStreak: chainResult.streak,
-    totalStreak: totalStreak + 1,
-    totalMultiplier: totalMult,
-    ...expResult
-  };
-}
-
-export function deleteTask(taskId) {
-  const tasks = gameState.get('tasks') || [];
-  gameState.set('tasks', tasks.filter(t => t.id !== taskId));
-}
-
-/**
- * Handles Task Abandonment with Penalties
- * @param {string} taskId 
- * @param {number} aiScore 0-100 (Threshold usually 70)
- */
-export function abandonTask(taskId, aiScore = 100) {
-  const tasks = gameState.get('tasks') || [];
-  const task = tasks.find(t => t.id === taskId);
-  if (!task) return;
-
-  if (aiScore < 70) {
-    // Penalty for "Weak Reasoning"
-    const currentMP = gameState.get('mp') || 100;
-    const currentHP = gameState.get('hp') || 100;
-    
-    // MP Drain (Mental Toll)
-    gameState.set('mp', Math.max(0, currentMP - 30));
-    
-    // If MP is empty, HP starts to drain (Physical Toll)
-    if (currentMP <= 0) {
-      gameState.set('hp', Math.max(0, currentHP - 20));
-      addFracture(); // Visual screen effect
-    }
-  }
-
-  deleteTask(taskId);
-}
-
-export function getActiveTasks() {
-  return (gameState.get('tasks') || []).filter(t => t.status === 'active');
-}
-
-export function getTasksByCategory(category) {
-  return getActiveTasks().filter(t => t.category === category);
-}
-
-export function getTasksByDifficulty(difficulty) {
-  return getActiveTasks().filter(t => t.difficulty === difficulty);
-}
-
-// 2-Minute Rule: Give Up (1 stone)
-export function twoMinGiveUp(taskId) {
-  awardStones(1);
-  deleteTask(taskId);
-  return { stonesEarned: 1 };
-}
-
-// 2-Minute Rule: Arise Success (25 stones + 5x EXP)
-export function twoMinAriseComplete(taskId) {
-  const tasks = gameState.get('tasks') || [];
-  const task = tasks.find(t => t.id === taskId);
-  if (!task) return null;
-
-  const diff = DIFFICULTY[task.difficulty] || DIFFICULTY.normal;
-  const bonusExp = diff.exp * 5;
-  const bonusStones = 25;
-
-  const expResult = awardEXP(bonusExp);
-  const stonesEarned = awardStones(bonusStones);
-  addAttributePoints('wil', 3); // WIL bonus for Arise
-
-  // Complete the task
-  task.status = 'completed';
-  task.completedAt = new Date().toISOString();
-  const taskIndex = tasks.indexOf(task);
-  tasks.splice(taskIndex, 1);
-  gameState.set('tasks', tasks);
-
-  const completed = gameState.get('completedTasks') || [];
-  completed.unshift(task);
-  gameState.set('completedTasks', completed);
-  gameState.set('totalTasksCompleted', (gameState.get('totalTasksCompleted') || 0) + 1);
-
-  return {
-    task,
-    expEarned: bonusExp,
-    stonesEarned: bonusStones,
-    ...expResult,
-  };
-}
-
-// Deadline detection
-export function getDeadlineStatus(task) {
-  if (!task.deadline) return 'none';
-  const now = Date.now();
-  const deadline = new Date(task.deadline).getTime();
-  const remaining = deadline - now;
-
-  if (remaining <= 0) return 'overdue';
-  if (remaining <= 60 * 60 * 1000) return 'critical'; // < 1 hour
-  if (remaining <= 4 * 60 * 60 * 1000) return 'near'; // < 4 hours
-  return 'safe';
-}
-
-// Get deadline bleed intensity (0-1)
-export function getDeadlineBleed(task) {
-  if (!task.deadline) return 0;
-  const now = Date.now();
-  const created = new Date(task.createdAt).getTime();
-  const deadline = new Date(task.deadline).getTime();
-
-  if (now >= deadline) return 1;
-  const total = deadline - created;
-  const elapsed = now - created;
-
-  return Math.max(0, Math.min(1, elapsed / total));
+export function getDungeonRooms(dungeonId) {
+  const rooms = gameState.get('tasks') || [];
+  return rooms.filter(r => r.dungeonId === dungeonId);
 }

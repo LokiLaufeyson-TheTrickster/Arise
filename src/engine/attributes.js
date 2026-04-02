@@ -1,19 +1,59 @@
 // ============================================
-// ARISE V4.0 — Attribute Matrix
+// ARISE V3.0 — Attribute Matrix
 // STR/AGI/INT/VIT/SNS/WIL calculations
 // ============================================
 
 import gameState from '../state/gameState.js';
-import { getIcon } from './icons.js';
 
 export const ATTRIBUTES = {
-  str: { key: 'str', name: 'Strength', iconType: 'str', color: '#FF6B35' },
-  agi: { key: 'agi', name: 'Agility', iconType: 'agi', color: '#FFD700' },
-  int: { key: 'int', name: 'Intelligence', iconType: 'int', color: '#2979FF' },
-  vit: { key: 'vit', name: 'Vitality', iconType: 'vit', color: '#00E676' },
-  sns: { key: 'sns', name: 'Sense', iconType: 'sns', color: '#E040FB' },
-  wil: { key: 'wil', name: 'Willpower', iconType: 'wil', color: '#FF1744' },
+  str: { key: 'str', name: 'Strength', icon: '<img src="/stat_str.png" style="width:28px;height:28px;object-fit:contain;vertical-align:middle" alt="STR">', color: '#FF6B35' },
+  agi: { key: 'agi', name: 'Agility', icon: '<img src="/stat_agi.png" style="width:28px;height:28px;object-fit:contain;vertical-align:middle" alt="AGI">', color: '#FFD700' },
+  int: { key: 'int', name: 'Intelligence', icon: '<img src="/stat_int.png" style="width:28px;height:28px;object-fit:contain;vertical-align:middle" alt="INT">', color: '#2979FF' },
+  vit: { key: 'vit', name: 'Vitality', icon: '<img src="/stat_vit.png" style="width:28px;height:28px;object-fit:contain;vertical-align:middle" alt="VIT">', color: '#00E676' },
+  sns: { key: 'sns', name: 'Sense', icon: '<img src="/stat_sns.png" style="width:28px;height:28px;object-fit:contain;vertical-align:middle" alt="SNS">', color: '#E040FB' },
+  wil: { key: 'wil', name: 'Willpower', icon: '<img src="/stat_wil.png" style="width:28px;height:28px;object-fit:contain;vertical-align:middle" alt="WIL">', color: '#FF1744' },
 };
+
+// ── HP / MP Stats ──
+export function getMaxHp() {
+  const vit = gameState.get('attributes.vit') || 0;
+  return 100 + (vit * 10);
+}
+
+export function getMaxMp() {
+  const int = gameState.get('attributes.int') || 0;
+  return 50 + (int * 5);
+}
+
+export function damageHp(amount) {
+  const current = gameState.get('hp') || getMaxHp();
+  const next = Math.max(0, current - amount);
+  gameState.set('hp', next);
+  return next;
+}
+
+export function healHp(amount) {
+  const current = gameState.get('hp') || getMaxHp();
+  const max = getMaxHp();
+  const next = Math.min(max, current + amount);
+  gameState.set('hp', next);
+  return next;
+}
+
+export function consumeMp(amount) {
+  const current = gameState.get('mp') || getMaxMp();
+  if (current < amount) return false;
+  gameState.set('mp', current - amount);
+  return true;
+}
+
+export function restoreMp(amount) {
+  const current = gameState.get('mp') || getMaxMp();
+  const max = getMaxMp();
+  const next = Math.min(max, current + amount);
+  gameState.set('mp', next);
+  return next;
+}
 
 // Rank thresholds per attribute
 export const STAT_RANKS = [
@@ -35,7 +75,7 @@ export function getStatRank(value) {
 export function getStatRankColor(rank) {
   const colors = {
     'E': '#6B7280', 'D': '#60A5FA', 'C': '#00E5FF',
-    'B': '#A78BFA', 'A': '#C084FC', 'S': '#FF1744'
+    'B': '#A78BFA', 'A': '#C084FC', 'S': '#00E5FF'
   };
   return colors[rank] || '#6B7280';
 }
@@ -60,12 +100,13 @@ export function getStaminaFloor() {
 // Chain-Link window (AGI benefit)
 export function getChainWindow() {
   const agi = gameState.get('attributes').agi || 0;
-  return 60 + Math.floor(agi / 10); 
+  return 60 + Math.floor(agi / 10); // minutes
 }
 
 // Concentration multiplier (INT benefit)
 export function getConcentrationMultiplier() {
   const int = gameState.get('attributes').int || 0;
+  // At 100 INT, 25 mins → 30 mins (1.2x)
   return 1 + (int / 500);
 }
 
@@ -73,8 +114,9 @@ export function getConcentrationMultiplier() {
 export function getPenaltyReduction() {
   const vit = gameState.get('attributes').vit || 0;
   const vitRank = getStatRank(vit);
+  // B rank or above: 4h → 2.5h
   if (['B', 'A', 'S'].includes(vitRank)) {
-    return 0.375; 
+    return 0.375; // 37.5% reduction
   }
   if (vitRank === 'C') return 0.15;
   if (vitRank === 'D') return 0.05;
@@ -84,16 +126,16 @@ export function getPenaltyReduction() {
 // Hidden quest chance (SNS benefit)
 export function getHiddenQuestChance() {
   const sns = gameState.get('attributes').sns || 0;
-  return 1 + (sns * 0.1); 
+  return 1 + (sns * 0.1); // percentage
 }
 
 // Loot floor (WIL benefit)
 export function getLootFloorBonus() {
   const wil = gameState.get('attributes').wil || 0;
-  return Math.min(wil * 0.1, 15); 
+  return Math.min(wil * 0.1, 15); // max 15% shift
 }
 
-// Shadow buff for stats 
+// Shadow buff for stats (all equipped shadows, not just knights)
 function getShadowStatBuff(stat) {
   const equippedIds = gameState.get('equippedShadows') || [];
   const allShadows = gameState.get('shadows') || [];
@@ -103,9 +145,11 @@ function getShadowStatBuff(stat) {
     const shadow = allShadows.find(s => s.id === id);
     if (!shadow || !shadow.buff) continue;
     
+    // New format: buff.type === 'stat' && buff.stat === 'str'
     if (shadow.buff.type === 'stat' && shadow.buff.stat === stat) {
       buff += shadow.buff.value;
     }
+    // Legacy format: buff.type is the stat key itself (e.g. 'str', 'agi')
     else if (shadow.buff.type === stat) {
       buff += shadow.buff.value;
     }
@@ -114,39 +158,22 @@ function getShadowStatBuff(stat) {
   return buff;
 }
 
-// Get all attribute values formatted (Base + Shadows + Equipment)
+// Get all attribute values formatted
 export function getAttributeSummary() {
   const attrs = gameState.get('attributes') || {};
-  const equipment = gameState.get('equipment') || {};
-  
   return Object.entries(ATTRIBUTES).map(([key, info]) => {
     const baseValue = attrs[key] || 0;
-    
-    // Shadow Buffs
-    const shadowBonus = getShadowStatBuff(key);
-    
-    // Equipment Buffs
-    let equipBonus = 0;
-    Object.values(equipment).forEach(item => {
-      if (item && item.stats && item.stats[key]) {
-        equipBonus += item.stats[key];
-      }
-    });
-
-    const totalValue = baseValue + shadowBonus + equipBonus;
-    const rank = getStatRank(totalValue);
+    const bonusValue = getShadowStatBuff(key);
+    const totalValue = baseValue + bonusValue;
     
     return {
       key,
       ...info,
-      // Wrap the SVG from iconType
-      icon: getIcon(info.iconType, info.color),
       baseValue,
-      shadowBonus,
-      equipBonus,
-      value: totalValue,
-      rank,
-      rankColor: getStatRankColor(rank),
+      bonusValue,
+      value: totalValue, // Unified total for convenience
+      rank: getStatRank(totalValue),
+      rankColor: getStatRankColor(getStatRank(totalValue)),
     };
   });
 }

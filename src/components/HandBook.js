@@ -1,5 +1,5 @@
 // ============================================
-// ARISE V4.0 — Hunter's Handbook
+// ARISE V3.0 — Hunter's Handbook
 // System tutorials and documentation
 // ============================================
 
@@ -11,61 +11,67 @@ export function showHandBook() {
   backdrop.innerHTML = `
     <div class="modal system-handbook" style="max-width: 500px; padding: var(--space-xl)">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-lg)">
-        <h2 style="color:var(--cyan); font-family:var(--font-display); text-transform:uppercase; letter-spacing:0.1em; font-size:var(--text-xl)">The Monarch's Guide [V4.0]</h2>
+        <h2 style="color:var(--cyan); font-family:var(--font-display); text-transform:uppercase; letter-spacing:0.1em; font-size:var(--text-xl)">Hunter's Handbook</h2>
         <button id="close-handbook" style="background:transparent; color:var(--ash); font-size:24px;">&times;</button>
       </div>
 
       <div class="handbook-content" style="max-height: 70vh; overflow-y:auto; padding-right:var(--space-md)">
         <section style="margin-bottom: var(--space-xl)">
-          <h3 style="color:var(--purple); font-size:var(--text-sm); text-transform:uppercase; margin-bottom:var(--space-md); border-bottom:1px solid var(--purple-dim); padding-bottom:4px">Survival Core (HP/MP)</h3>
+          <h3 style="color:var(--purple); font-size:var(--text-sm); text-transform:uppercase; margin-bottom:var(--space-md); border-bottom:1px solid var(--purple-dim); padding-bottom:4px">Attribute Matrix</h3>
           <div style="display:flex; flex-direction:column; gap:var(--space-md)">
             <p style="font-size:var(--text-xs); line-height:1.6">
-              <strong style="color:var(--white)">Vitality (HP):</strong> Your life force. Failing a Penalty Quest or a Trial drains your HP. If it reaches zero, the System will force a <span style="color:var(--crimson)">Hard Reset</span>.
+              <strong style="color:var(--white)">STR (Strength):</strong> Increases base points gained after clearing a dungeon. Higher strength makes every task more rewarding.
             </p>
             <p style="font-size:var(--text-xs); line-height:1.6">
-              <strong style="color:var(--white)">Mana (MP):</strong> Used to power the System. Tasks and actions consume MP. If you run out, performance suffers.
+              <strong style="color:var(--white)">AGI (Agility):</strong> Extends your <span style="color:var(--cyan)">Chain-Link</span> window. Higher Agility gives you more time between tasks to maintain your multiplier.
             </p>
             <p style="font-size:var(--text-xs); line-height:1.6">
-              <strong style="color:var(--white)">Mana Charge:</strong> In the HUD, hold the <span style="color:var(--cyan)">Mana Charge</span> action to restore MP. During this ritual, there is a chance to mine <span style="color:var(--gold)">Essence Stones</span> from the void.
+              <strong style="color:var(--white)">INT (Intelligence):</strong> Multiplies concentration/focus rewards. Essential for high-XP "Study" dungeons.
+            </p>
+            <p style="font-size:var(--text-xs); line-height:1.6">
+              <strong style="color:var(--white)">VIT (Vitality):</strong> Reduces Penalty durations. At Rank B and above, physical recovery is significantly faster.
+            </p>
+            <p style="font-size:var(--text-xs); line-height:1.6">
+              <strong style="color:var(--white)">SNS (Sense):</strong> Increases <span style="color:var(--gold)">Hidden Quest</span> detection and the quality of shadow extraction.
+            </p>
+            <p style="font-size:var(--text-xs); line-height:1.6">
+              <strong style="color:var(--white)">WIL (Willpower):</strong> Shifts the "Loot Floor". Higher Willpower prevents finding common-grade shadows and stabilizes rare drops.
             </p>
           </div>
         </section>
 
         <section style="margin-bottom: var(--space-xl)">
-          <h3 style="color:var(--purple); font-size:var(--text-sm); text-transform:uppercase; margin-bottom:var(--space-md); border-bottom:1px solid var(--purple-dim); padding-bottom:4px">Trial of the Monarch</h3>
+          <h3 style="color:var(--purple); font-size:var(--text-sm); text-transform:uppercase; margin-bottom:var(--space-md); border-bottom:1px solid var(--purple-dim); padding-bottom:4px">Quest Core Logic</h3>
           <p style="font-size:var(--text-xs); line-height:1.6; margin-bottom:var(--space-sm)">
-            Deleting a quest is no longer simple. The System will judge your conviction.
+            The System automatically assigns attributes based on the dungeon type you create:
           </p>
           <ul style="list-style:none; font-size:var(--text-xs); display:flex; flex-direction:column; gap:4px">
-            <li>⚖️ <span style="color:var(--white)">AI JUDGMENT:</span> State your reason for giving up. If deemed unworthy, you lose HP.</li>
-            <li>⚔️ <span style="color:var(--white)">SYSTEM OVERRIDE:</span> If judged a failure, you have 2 minutes to complete the quest anyway. Succeeding clears the failure and grants **Double EXP**.</li>
+            <li>💼 <span style="color:var(--white)">PROFESSIONAL:</span> Strength + Intelligence</li>
+            <li>🏋️‍♀️ <span style="color:var(--white)">FITNESS:</span> Strength + Vitality</li>
+            <li>📚 <span style="color:var(--white)">LEARNING:</span> Intelligence + Sense</li>
+            <li>👑 <span style="color:var(--white)">PERSONAL:</span> Agility + Willpower</li>
           </ul>
         </section>
 
         <section style="margin-bottom: var(--space-xl)">
-          <h3 style="color:var(--purple); font-size:var(--text-sm); text-transform:uppercase; margin-bottom:var(--space-md); border-bottom:1px solid var(--purple-dim); padding-bottom:4px">The Vault & Forging</h3>
+          <h3 style="color:var(--purple); font-size:var(--text-sm); text-transform:uppercase; margin-bottom:var(--space-md); border-bottom:1px solid var(--purple-dim); padding-bottom:4px">Shadow Enhancement</h3>
           <p style="font-size:var(--text-xs); line-height:1.6">
-            <strong style="color:var(--white)">SVG Equipment:</strong> Items are now ranked E through S. All gear uses high-fidelity SVG icons with rank-specific glows.
+            Equipping shadows provides a **FLAT BONUS** to your attribute values. Shadows of the <span style="color:var(--cyan)">Knight-Grade</span> or higher provide significantly larger power increases. 
           </p>
-          <p style="font-size:var(--text-xs); line-height:1.6; margin-top:var(--space-sm)">
-            <strong style="color:var(--white)">Custom Shop:</strong> Handlers and Monarchs can now forge custom legendary items in the Store. Define the stats, name, and icon yourself.
+          <p style="font-size:var(--text-xs); line-height:1.6; margin-top:var(--space-sm); color:var(--ash)">
+            Note: You must have common infantry or high-grade shadows *Equipped* in your Roster to receive their blessings.
           </p>
         </section>
 
         <section>
-          <h3 style="color:var(--purple); font-size:var(--text-sm); text-transform:uppercase; margin-bottom:var(--space-md); border-bottom:1px solid var(--purple-dim); padding-bottom:4px">Attribute Matrix</h3>
-          <div style="display:flex; flex-direction:column; gap:var(--space-md)">
-            <p style="font-size:var(--text-xs); line-height:1.6">
-              <strong style="color:var(--white)">STR:</strong> Boosts task rewards. • <strong style="color:var(--white)">AGI:</strong> Extends Chain window. • <strong style="color:var(--white)">INT:</strong> Boosts focus XP.
-            </p>
-            <p style="font-size:var(--text-xs); line-height:1.6">
-              <strong style="color:var(--white)">VIT:</strong> Reduces Penalty time. • <strong style="color:var(--white)">SNS:</strong> Boosts Shadow Extraction. • <strong style="color:var(--white)">WIL:</strong> Stabilizes Loot quality.
-            </p>
-          </div>
+          <h3 style="color:var(--purple); font-size:var(--text-sm); text-transform:uppercase; margin-bottom:var(--space-md); border-bottom:1px solid var(--purple-dim); padding-bottom:4px">Penalty Protocol</h3>
+          <p style="font-size:var(--text-xs); line-height:1.6">
+            If your <span style="color:var(--cyan)">Chain-Link</span> expires or you delete an active quest, you may trigger a **Penalty Quest**. Penalties lock major UI features until they are cleared (either by time or ritual completion).
+          </p>
         </section>
       </div>
 
-      <button id="understood-handbook" class="btn btn--primary" style="width:100%; margin-top:var(--space-xl)">ACKNOWLEDGE SYSTEM</button>
+      <button id="understood-handbook" class="btn btn-primary btn-full" style="margin-top:var(--space-xl)">Understood</button>
     </div>
   `;
 

@@ -1,19 +1,21 @@
 // ============================================
 // ARISE V4.0 — AI System Engine (OpenRouter)
-// Minimal tokens, structured JSON output
+// Advanced model routing, structured JSON
 // ============================================
 
 import gameState from '../state/gameState.js';
 
-const OPENROUTER_MODEL = 'meta-llama/llama-3.1-8b-instruct:free';
+const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const DEFAULT_MODEL = 'google/gemini-2.0-flash-exp:free'; // High reliability free model
 
 function getApiKey() {
   const settings = gameState.get('settings') || {};
-  return settings.openrouterKey || settings.geminiKey; // Fallback for transition
+  // provided fallback for testing, user can override in settings
+  return settings.openRouterKey || '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';
 }
 
 /**
- * Core completion engine using OpenRouter Chat API
+ * Core completion engine using OpenRouter OpenAI-compatible API
  */
 async function fetchAICompletion(prompt, systemInstruction = '', requireJson = true) {
   const apiKey = getApiKey();
@@ -21,27 +23,25 @@ async function fetchAICompletion(prompt, systemInstruction = '', requireJson = t
     throw new Error('SYSTEM OFFLINE: OpenRouter API Key required in Settings.');
   }
 
-  const url = `https://openrouter.ai/api/v1/chat/completions`;
-
   const payload = {
-    model: OPENROUTER_MODEL,
+    model: DEFAULT_MODEL,
     messages: [
       { role: 'system', content: systemInstruction },
       { role: 'user', content: prompt }
     ],
     temperature: 0.7,
-    max_tokens: 300,
+    max_tokens: 500,
     response_format: requireJson ? { type: 'json_object' } : undefined
   };
 
   try {
-    const res = await fetch(url, {
+    const res = await fetch(OPENROUTER_URL, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': window.location.origin,
-        'X-Title': 'Arise V4.0'
+        'HTTP-Referer': 'https://arise-v4.vercel.app', // Required for OpenRouter
+        'X-Title': 'Arise V4'
       },
       body: JSON.stringify(payload)
     });
@@ -49,19 +49,18 @@ async function fetchAICompletion(prompt, systemInstruction = '', requireJson = t
     const data = await res.json();
 
     if (!res.ok) {
-      throw new Error(data.error?.message || 'API Error');
+      throw new Error(data.error?.message || 'AI System Error');
     }
 
     const rawText = data.choices?.[0]?.message?.content || '';
     
     if (requireJson) {
       try {
-        // Some models still wrap in markdown blocks despite response_format
-        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-        const cleanJson = jsonMatch ? jsonMatch[0] : rawText;
-        return JSON.parse(cleanJson);
+        return JSON.parse(rawText);
       } catch (e) {
-        console.error('JSON Parse Error:', rawText);
+        // Fallback for models that don't strictly follow JSON format if not requested
+        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) return JSON.parse(jsonMatch[0]);
         throw new Error('System output corrupted (Invalid JSON).');
       }
     }
@@ -79,61 +78,49 @@ async function fetchAICompletion(prompt, systemInstruction = '', requireJson = t
 export async function enhanceQuest(title) {
   const system = `You are "The System" from Solo Leveling. You are a cold, absolute, and commanding RPG interface.
   Turn the user's task into an epic, high-stakes dungeon description (max 2 sentences).
-  Recommend:
-  - difficulty: trivial, normal, hard, extreme
-  - stat: str, agi, int, vit, sns, wil
-  - category: work, fitness, study, personal
-  - multiStats: [string] (list of stats it should boost)
+  Recommend a difficulty (trivial, normal, hard, extreme).
+  Recommend the primary stat (str, agi, int, vit, sns, wil).
+  Recommend the category (work, fitness, study, personal).
 
-  Respond ONLY with this JSON:
-  {"epicTitle": "str", "lore": "str", "difficulty": "str", "stat": "str", "category": "str", "multiStats": []}`;
+  Respond ONLY with JSON:
+  {"epicTitle": "str", "lore": "str", "difficulty": "str", "stat": "str", "category": "str"}`;
 
-  const prompt = `Task: ${title}`;
-
-  return await fetchAICompletion(prompt, system, true);
+  return await fetchAICompletion(`Task: ${title}`, system, true);
 }
 
 /**
- * Judges the validity of a task abandonment reason
+ * AI Judge for task abandonment
  */
-export async function evaluateAbandonment(reason, taskTitle) {
-  const system = `You are "The System". A Hunter is attempting to abandon the Quest: "${taskTitle}".
-  He says: "${reason}".
-  Judge this reason with cold calculation. Is it a valid emergency/necessity, or just weakness?
-  
-  Provide:
-  1. score: 0-100 (0 = Total Cowardice/Lazy, 100 = Life-or-death Emergency)
-  2. judgment: A brutal 1-sentence verdict.
-  
-  Respond ONLY with JSON:
-  {"score": number, "judgment": "string"}`;
+export async function judgeAbandonment(title, reason) {
+  const system = `You are "The System". A Hunter is attempting to abandon a quest.
+  Analyze their reason. Be harsh but fair.
+  Provide a score from 0 to 100 (100 = perfectly valid reason like medical emergency, 0 = pure laziness).
+  Provide a cold response judging them.
 
-  return await fetchAICompletion(`Reason: ${reason}`, system, true);
+  Respond ONLY with JSON:
+  {"score": number, "judgment": "str"}`;
+
+  return await fetchAICompletion(`Quest: ${title}\nReason for abandonment: ${reason}`, system, true);
 }
 
 /**
  * Generates Shadow traits, lore, and an image prompt
  */
 export async function generateShadowLore(tier, baseClass) {
-  const system = `You are "The System". Extracting a shadow soldier.
+  const system = `You are "The System" extracting a shadow soldier.
   Tier: ${tier.toUpperCase()}, Class: ${baseClass.toUpperCase()}.
   Provide:
-  1. name: cool name (1-2 words).
-  2. lore: 1-sentence backstory.
-  3. imagePrompt: Visually striking description (OLED pure black, glowing cyan smoke, highly detailed dark fantasy, pitch black background).
-  
+  1. Lore-accurate shadow name (1-2 words).
+  2. Brutal 1-sentence backstory.
+  3. Physical description focusing on 'OLED Pure Black, Glowing Cyan smoke, Solo Leveling aesthetic'.
+
   Respond ONLY with JSON:
   {"name": "str", "lore": "str", "imagePrompt": "str"}`;
 
-  return await fetchAICompletion(`Extract ${tier} ${baseClass}.`, system, true);
+  return await fetchAICompletion(`Extracting ${tier} ${baseClass}.`, system, true);
 }
 
-/**
- * Generates an image URL using pollinations.ai 
- */
 export function getPollinationsImageUrl(prompt, width = 400, height = 400) {
-  // We append random seed to avoid browser caching identical prompts
-  // We append random seed to avoid browser caching identical prompts
   const encodedPrompt = encodeURIComponent(prompt + ' | seed ' + Date.now());
   const settings = gameState.get('settings') || {};
   const pollKey = settings.pollinationsKey ? `&token=${settings.pollinationsKey}` : '';
