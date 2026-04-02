@@ -46,13 +46,14 @@ const ICONS = {
   settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px;filter:drop-shadow(0 0 6px rgba(0,229,255,0.4))"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
   plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:24px;height:24px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
   check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:20px;height:20px"><polyline points="20 6 9 17 4 12"/></svg>',
-  timer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  timer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;vertical-align:-2px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
   trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
   skull: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><circle cx="12" cy="10" r="8"/><path d="M8 22l1-4h6l1 4"/><circle cx="9" cy="10" r="1.5" fill="currentColor"/><circle cx="15" cy="10" r="1.5" fill="currentColor"/></svg>',
   mana: '<svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" style="width:16px;height:16px;vertical-align:middle"><polygon points="12 2 15 10 22 10 16 15 18 22 12 18 6 22 8 15 2 10 9 10"/></svg>',
   essence: '<svg viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2" style="width:16px;height:16px;vertical-align:middle"><polygon points="12 2 22 12 12 22 2 12"/></svg>',
   help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;vertical-align:middle"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
-  store: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px;filter:drop-shadow(0 0 6px rgba(0,229,255,0.4))"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4H6z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>'
+  store: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px;filter:drop-shadow(0 0 6px rgba(0,229,255,0.4))"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4H6z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>',
+  calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;vertical-align:-2px"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
 };
 
 // ── Boot ──
@@ -807,66 +808,98 @@ function showCustomRewardCreator(onComplete) {
   overlay.className = 'setup-overlay';
   overlay.style.zIndex = 'var(--z-modal)';
   
-  overlay.innerHTML = `
-    <div class="setup-content" style="max-width:400px; padding:var(--space-xl)">
-      <h3 class="view-title" style="margin-bottom:var(--space-lg)">Register New Reward</h3>
-      
-      <div class="task-creator">
-        <label class="task-creator__label">Reward Name</label>
-        <input type="text" id="custom-reward-name" placeholder="E.g. 1 Hour Gaming Session" class="task-creator" />
-        
-        <label class="task-creator__label" style="margin-top:var(--space-md)">Extraction Cost (Stones)</label>
-        <input type="number" id="custom-reward-cost" value="25" class="task-creator" />
-        
-        <label class="task-creator__label" style="margin-top:var(--space-md)">System Clearance (Tier)</label>
-        <select id="custom-reward-tier" class="task-creator" style="width:100%; background:var(--black); color:var(--white); padding:8px; border-radius:4px; border:1px solid var(--border);">
-          <option value="E">E-Rank (Default)</option>
-          <option value="D">D-Rank</option>
-          <option value="C">C-Rank</option>
-          <option value="B">B-Rank</option>
-          <option value="A">A-Rank</option>
-          <option value="S">S-Rank (Elite)</option>
-        </select>
+  const emojis = ['🍔','🎮','📺','💤','🍺','🎬','📚','🎵','🛒','📱','🍩','💸'];
+  let selectedIcon = '🎮';
 
-        <div style="margin-top:var(--space-2xl); display:grid; grid-template-columns:1fr 1fr; gap:var(--space-md)">
-          <button class="btn btn-ghost" id="cancel-custom-reward">Cancel</button>
-          <button class="btn btn-primary" id="confirm-custom-reward">Register</button>
+  function render() {
+    overlay.innerHTML = `
+      <div class="setup-content" style="max-width:400px; padding:var(--space-xl)">
+        <h3 class="view-title" style="margin-bottom:var(--space-lg)">Register New Reward</h3>
+        
+        <div class="task-creator">
+          <label class="task-creator__label">Reward Icon</label>
+          <div style="display:grid; grid-template-columns:repeat(6, 1fr); gap:8px; margin-bottom:var(--space-md);">
+            ${emojis.map(e => `
+              <button class="icon-selector-btn ${e === selectedIcon ? 'selected' : ''}" data-icon="${e}" style="background:var(--black); border:1px solid ${e === selectedIcon ? 'var(--cyan)' : 'rgba(255,255,255,0.05)'}; border-radius:4px; padding:8px; font-size:18px;">
+                ${e}
+              </button>
+            `).join('')}
+          </div>
+
+          <label class="task-creator__label">Reward Name</label>
+          <input type="text" id="custom-reward-name" placeholder="E.g. 1 Hour Gaming Session" class="task-creator" />
+          
+          <label class="task-creator__label" style="margin-top:var(--space-md)">Extraction Cost (Stones)</label>
+          <input type="number" id="custom-reward-cost" value="25" class="task-creator" />
+          
+          <label class="task-creator__label" style="margin-top:var(--space-md)">System Clearance (Tier)</label>
+          <select id="custom-reward-tier" class="task-creator" style="width:100%; background:var(--black); color:var(--white); padding:8px; border-radius:4px; border:1px solid var(--border);">
+            <option value="E">E-Rank (Default)</option>
+            <option value="D">D-Rank</option>
+            <option value="C">C-Rank</option>
+            <option value="B">B-Rank</option>
+            <option value="A">A-Rank</option>
+            <option value="S">S-Rank (Elite)</option>
+          </select>
+
+          <div style="margin-top:var(--space-2xl); display:grid; grid-template-columns:1fr 1fr; gap:var(--space-md)">
+            <button class="btn btn-ghost" id="cancel-custom-reward">Cancel</button>
+            <button class="btn btn-primary" id="confirm-custom-reward">Register</button>
+          </div>
         </div>
       </div>
-    </div>
-  `;
+    `;
+
+    overlay.querySelectorAll('.icon-selector-btn').forEach(btn => {
+      btn.onclick = () => {
+        selectedIcon = btn.dataset.icon;
+        
+        // Preserve values before re-render
+        const name = overlay.querySelector('#custom-reward-name')?.value || '';
+        const cost = overlay.querySelector('#custom-reward-cost')?.value || '25';
+        const tier = overlay.querySelector('#custom-reward-tier')?.value || 'E';
+        
+        render();
+        
+        if (overlay.querySelector('#custom-reward-name')) overlay.querySelector('#custom-reward-name').value = name;
+        if (overlay.querySelector('#custom-reward-cost')) overlay.querySelector('#custom-reward-cost').value = cost;
+        if (overlay.querySelector('#custom-reward-tier')) overlay.querySelector('#custom-reward-tier').value = tier;
+      };
+    });
+
+    overlay.querySelector('#cancel-custom-reward').onclick = () => {
+      overlay.remove();
+    };
+
+    overlay.querySelector('#confirm-custom-reward').onclick = async () => {
+      const nameInput = overlay.querySelector('#custom-reward-name');
+      const costInput = overlay.querySelector('#custom-reward-cost');
+      const tierInput = overlay.querySelector('#custom-reward-tier');
+
+      const name = nameInput.value.trim();
+      const cost = parseInt(costInput.value);
+      const tier = tierInput.value;
+
+      if (!name) return showToast('Reward name is required.', 'error');
+
+      try {
+        const { addCustomReward } = await import('./engine/shop.js');
+        await addCustomReward({ name, cost, tier, icon: selectedIcon });
+        
+        showToast(`${name} registered in Registry.`, 'success');
+        pulseManaVeins();
+        playArise();
+        overlay.remove();
+        onComplete();
+      } catch (err) {
+        console.error('Registry failure:', err);
+        showToast('System Error: Failed to register reward.', 'error');
+      }
+    };
+  }
 
   document.body.appendChild(overlay);
-
-  overlay.querySelector('#cancel-custom-reward').onclick = () => {
-    overlay.remove();
-  };
-
-  overlay.querySelector('#confirm-custom-reward').onclick = async () => {
-    const nameInput = overlay.querySelector('#custom-reward-name');
-    const costInput = overlay.querySelector('#custom-reward-cost');
-    const tierInput = overlay.querySelector('#custom-reward-tier');
-
-    const name = nameInput.value.trim();
-    const cost = parseInt(costInput.value);
-    const tier = tierInput.value;
-
-    if (!name) return showToast('Reward name is required.', 'error');
-
-    try {
-      const { addCustomReward } = await import('./engine/shop.js');
-      await addCustomReward({ name, cost, tier });
-      
-      showToast(`${name} registered in Registry.`, 'success');
-      pulseManaVeins();
-      playArise();
-      overlay.remove();
-      onComplete();
-    } catch (err) {
-      console.error('Registry failure:', err);
-      showToast('System Error: Failed to register reward.', 'error');
-    }
-  };
+  render();
 }
 
 // ============================================
@@ -1442,6 +1475,7 @@ async function handleAbandonmentFlow(roomId) {
   } catch (err) {
     console.error('Judge error:', err);
     // Fallback if AI fails: allow delete with MP hit
+    showToast('AI Link Fractured. Task Terminated.', 'error');
     deleteRoom(roomId);
     renderView(currentView);
   } finally {
@@ -1480,9 +1514,9 @@ function showTaskCreator() {
         ` : ''}
 
         <div class="task-creator__field" style="margin-bottom:var(--space-md)">
-          <div class="task-creator__category-grid mini">
+          <div class="task-creator__category-grid">
             ${CATEGORIES.map(c => `
-              <button class="category-option mini ${c.key === selectedCat ? 'selected' : ''}" data-cat="${c.key}">
+              <button class="category-option ${c.key === selectedCat ? 'selected' : ''}" data-cat="${c.key}">
                 <img src="${c.icon}" class="category-icon-img" alt="${c.label}" />
                 <span>${c.label}</span>
               </button>
@@ -1518,29 +1552,17 @@ function showTaskCreator() {
               </div>
               
               <div class="tc-param-grid" style="margin-top:var(--space-sm);">
-                <div style="display:flex; flex-direction:column; gap:4px">
-                  <label class="task-creator__label" style="font-size:10px;">Difficulty</label>
-                  <div class="tc-diff-selector big" data-room-index="${index}">
+                <div style="display:flex; flex-direction:column; gap:8px">
+                  <label class="task-creator__label">Difficulty Level</label>
+                  <div class="tc-diff-selector" data-room-index="${index}" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
                     ${Object.entries(DIFFICULTY).map(([k, d]) => `
-                      <button class="tc-diff-btn ${room.difficulty === k ? 'selected' : ''}" data-diff="${k}" style="--rank-color:${d.color}">
-                        ${k.charAt(0).toUpperCase()}
+                      <button class="tc-diff-btn ${room.difficulty === k ? 'selected' : ''}" data-diff="${k}" style="--rank-color:${d.color}; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:12px; border-radius:8px;">
+                        <span style="font-weight:800; font-size:12px;">${d.label.toUpperCase()}</span>
+                        <span style="font-weight:600; font-size:9px; opacity:0.7; margin-top:2px;">+${d.exp} EXP</span>
                       </button>
                     `).join('')}
                   </div>
                 </div>
-
-                ${creatorMode === 'solo' ? `
-                  <div style="display:flex; flex-direction:column; gap:4px">
-                    <label class="task-creator__label" style="font-size:10px;">Attribute</label>
-                    <div class="tc-stat-selector" data-room-index="${index}">
-                      ${['str','agi','vit','int','sns','wil'].map(s => `
-                        <button class="tc-stat-btn ${room.stat === s ? 'selected' : ''}" data-stat="${s}" title="${s.toUpperCase()}">
-                          <img src="/stat_${s}.png" />
-                        </button>
-                      `).join('')}
-                    </div>
-                  </div>
-                ` : ''}
               </div>
             </div>
           `).join('')}
@@ -1609,14 +1631,6 @@ function showTaskCreator() {
       };
     });
 
-    backdrop.querySelectorAll('.tc-stat-btn').forEach(btn => {
-      btn.onclick = () => {
-        const idx = btn.closest('.tc-stat-selector').dataset.roomIndex;
-        rooms[idx].stat = btn.dataset.stat;
-        playClick();
-        render();
-      };
-    });
 
     backdrop.querySelector('#tc-add-room')?.addEventListener('click', () => {
       syncFormState();

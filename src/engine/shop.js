@@ -93,8 +93,9 @@ export function getShopItems() {
   return [...SHOP_ITEMS, ...custom];
 }
 
-export async function addCustomReward({ name, cost, desc = '', tier = 'E' }) {
+export async function addCustomReward({ name, cost, desc = '', tier = 'E', icon = '' }) {
   const custom = gameState.get('customRewards') || [];
+  const defaultIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
   const newReward = {
     id: `custom_${Date.now()}`,
     name,
@@ -102,7 +103,7 @@ export async function addCustomReward({ name, cost, desc = '', tier = 'E' }) {
     desc,
     tier,
     type: 'reward',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>' // Star icon for custom
+    icon: icon || defaultIcon
   };
   
   gameState.set('customRewards', [newReward, ...custom]);

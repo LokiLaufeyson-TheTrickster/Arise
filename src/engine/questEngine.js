@@ -181,13 +181,25 @@ export function parseDeadline(input) {
 export function deleteRoom(roomId) {
   const rooms = gameState.get('tasks') || [];
   const room = rooms.find(r => r.id === roomId);
+  if (!room) return;
   
   // Penalty for abandoning a quest or deleting a room
-  if (room && room.status === 'active') {
-    consumeMp(5); // MP Drain
+  if (room.status === 'active') {
+    import('./attributes.js').then(attr => attr.consumeMp(5));
   }
 
-  gameState.set('tasks', rooms.filter(r => r.id !== roomId));
+  const newRooms = rooms.filter(r => r.id !== roomId);
+  gameState.set('tasks', newRooms);
+  
+  // Check if Dungeon is empty
+  const dungeonId = room.dungeonId;
+  const remainingRooms = newRooms.filter(r => r.dungeonId === dungeonId);
+  if (remainingRooms.length === 0) {
+    const dungeons = gameState.get('dungeons') || [];
+    gameState.set('dungeons', dungeons.filter(d => d.id !== dungeonId));
+  } else {
+    checkDungeonClear(dungeonId);
+  }
 }
 
 export function getActiveDungeons() {
