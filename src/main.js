@@ -76,6 +76,18 @@ function initApp() {
     return;
   }
 
+  // Purge legacy ghost dungeons 
+  const tasks = gameState.get('tasks') || [];
+  const dungeons = gameState.get('dungeons') || [];
+  const validDungeons = dungeons.filter(d => {
+    const roomCount = tasks.filter(r => r.dungeonId === d.id).length;
+    return roomCount > 0;
+  });
+  if (validDungeons.length !== dungeons.length) {
+    console.log(`System Purged ${dungeons.length - validDungeons.length} ghost anomalies.`);
+    gameState.set('dungeons', validDungeons);
+  }
+
   // Initialize Firebase and connect
   if (initFirebase()) {
     const s = gameState.get('settings');

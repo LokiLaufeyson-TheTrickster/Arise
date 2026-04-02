@@ -1,12 +1,19 @@
 // ============================================
 // ARISE V4.0 — AI System Engine (OpenRouter)
-// Advanced model routing, structured JSON
+// Multi-model fallback, structured JSON
 // ============================================
 
 import gameState from '../state/gameState.js';
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const DEFAULT_MODEL = 'stepfun/step-3.5-flash:free';
+
+// Fallback chain — if one model fails, try the next
+const MODEL_CHAIN = [
+  'meta-llama/llama-3.1-8b-instruct:free',
+  'qwen/qwen-2.5-7b-instruct:free',
+  'mistralai/mistral-7b-instruct:free',
+  'huggingfaceh4/zephyr-7b-beta:free'
+];
 
 function getApiKey() {
   const settings = gameState.get('settings') || {};
@@ -15,6 +22,7 @@ function getApiKey() {
 
 /**
  * Core completion engine using OpenRouter OpenAI-compatible API
+ * Tries each model in MODEL_CHAIN until one succeeds
  */
 async function fetchAICompletion(prompt, systemInstruction = '', requireJson = true) {
   const apiKey = getApiKey();
@@ -22,53 +30,65 @@ async function fetchAICompletion(prompt, systemInstruction = '', requireJson = t
     throw new Error('SYSTEM OFFLINE: OpenRouter API Key required in Settings.');
   }
 
-  const payload = {
-    model: DEFAULT_MODEL,
-    messages: [
-      { role: 'system', content: systemInstruction },
-      { role: 'user', content: prompt }
-    ],
-    temperature: 0.7,
-    max_tokens: 500,
-    response_format: requireJson ? { type: 'json_object' } : undefined
-  };
+  let lastError = null;
 
-  try {
-    const res = await fetch(OPENROUTER_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': 'https://arise-v4.vercel.app', // Required for OpenRouter
-        'X-Title': 'Arise V4'
-      },
-      body: JSON.stringify(payload)
-    });
+  for (const model of MODEL_CHAIN) {
+    try {
+      const payload = {
+        model,
+        messages: [
+          { role: 'system', content: systemInstruction },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 500,
+        response_format: requireJson ? { type: 'json_object' } : undefined
+      };
 
-    const data = await res.json();
+      const res = await fetch(OPENROUTER_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': 'https://arise-v4.vercel.app',
+          'X-Title': 'Arise V4'
+        },
+        body: JSON.stringify(payload)
+      });
 
-    if (!res.ok) {
-      throw new Error(data.error?.message || 'AI System Error');
-    }
+      const data = await res.json();
 
-    const rawText = data.choices?.[0]?.message?.content || '';
-    
-    if (requireJson) {
-      try {
-        return JSON.parse(rawText);
-      } catch (e) {
-        // Fallback for models that don't strictly follow JSON format if not requested
-        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) return JSON.parse(jsonMatch[0]);
-        throw new Error('System output corrupted (Invalid JSON).');
+      if (!res.ok) {
+        console.warn(`Model ${model} failed:`, data.error?.message);
+        lastError = new Error(data.error?.message || 'AI System Error');
+        continue; // Try next model
       }
-    }
 
-    return rawText;
-  } catch (err) {
-    console.error('AI Failure:', err);
-    throw err;
+      const rawText = data.choices?.[0]?.message?.content || '';
+
+      if (requireJson) {
+        try {
+          return JSON.parse(rawText);
+        } catch (e) {
+          const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+          if (jsonMatch) return JSON.parse(jsonMatch[0]);
+          console.warn(`Model ${model} returned invalid JSON, trying next...`);
+          lastError = new Error('System output corrupted (Invalid JSON).');
+          continue;
+        }
+      }
+
+      return rawText;
+    } catch (err) {
+      console.warn(`Model ${model} errored:`, err.message);
+      lastError = err;
+      continue;
+    }
   }
+
+  // All models failed
+  console.error('All AI models exhausted:', lastError);
+  throw lastError || new Error('All AI models failed.');
 }
 
 /**

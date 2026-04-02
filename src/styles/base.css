@@ -384,7 +384,7 @@ select option {
 /* ── Desktop scaling ── */
 @media (min-width: 768px) {
   .view-container {
-    max-width: 600px;
+    max-width: 700px;
     margin: 0 auto;
     padding: var(--space-2xl);
     padding-bottom: calc(var(--nav-height) + var(--space-2xl));
@@ -393,6 +393,26 @@ select option {
 
 @media (min-width: 1200px) {
   .view-container {
-    max-width: 900px;
+    max-width: 1100px;
+    padding: var(--space-3xl) var(--space-2xl);
+    padding-bottom: calc(var(--nav-height) + var(--space-3xl));
+  }
+
+  .stat-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  .store-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  .shadow-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+@media (min-width: 1600px) {
+  .view-container {
+    max-width: 1400px;
   }
 }
