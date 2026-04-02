@@ -33,14 +33,14 @@ export const STORE_ITEMS = {
   'b_grimoire': { id: 'b_grimoire', name: 'Monarch Grimoire', tier: 'B', type: 'accessory', iconType: 'grimoire', cost: 3500, stats: { int: 80, wil: 40 }, lore: 'A floating spellbook of blinding light.' },
 
   // A RANK
-  'a_sword': { id: 'a_sword', name: 'Commander Blade', tier: 'A', type: 'weapon', iconType: 'sword', cost: 10000, stats: { str: 80, wil: 40, sns: 20 }, lore: 'Massive ornate blade of white light.' },
+  'a_sword': { id: 'a_sword', name: 'Commander Blade', tier: 'A', type: 'weapon', iconType: 'sword', cost: 10000, stats: { str: 80, wil: 40, sns: 20 }, lore: 'Ornate blade of white light.' },
   'a_dagger': { id: 'a_dagger', name: 'Venom Fang', tier: 'A', type: 'weapon', iconType: 'dagger', cost: 9000, stats: { agi: 120, str: 30 }, lore: 'Carved from a legendary serpent tooth.' },
   'a_bow': { id: 'a_bow', name: 'Lightning Archbow', tier: 'A', type: 'weapon', iconType: 'bow', cost: 9500, stats: { agi: 100, int: 50 }, lore: 'Fires bolts of pure crackling mana.' },
-  'a_chest': { id: 'a_chest', name: 'High Orc Plate', tier: 'A', type: 'chest', iconType: 'chest', cost: 15000, stats: { vit: 150, str: 50, wil: 30 }, lore: 'Crimson armor radiating intense heat.' },
+  'a_chest': { id: 'a_chest', name: 'High Orc Plate', tier: 'A', type: 'chest', iconType: 'chest', cost: 15000, stats: { vit: 150, str: 50, wil: 30 }, lore: 'Crimson armor radiating heat.' },
   'a_orb': { id: 'a_orb', name: 'Orb of Zero', tier: 'A', type: 'accessory', iconType: 'orb', cost: 11000, stats: { int: 200, sns: 40 }, lore: 'Freezes the dimensions around it.' },
 
   // S RANK
-  's_sword': { id: 's_sword', name: 'Monarch Greatsword', tier: 'S', type: 'weapon', iconType: 'sword', cost: 60000, stats: { str: 400, wil: 200, sns: 100 }, lore: 'Command absolute authority over shadows.' },
+  's_sword': { id: 's_sword', name: 'Monarch Greatsword', tier: 'S', type: 'weapon', iconType: 'sword', cost: 60000, stats: { str: 400, wil: 200, sns: 100 }, lore: 'Absolute authority over shadows.' },
   's_dagger': { id: 's_dagger', name: 'Demon King Dagger', tier: 'S', type: 'weapon', iconType: 'dagger', cost: 50000, stats: { agi: 300, str: 100, sns: 50 }, lore: 'Absolute darkness with violet fury.' },
   's_spear': { id: 's_spear', name: 'Ice Monarch Spear', tier: 'S', type: 'weapon', iconType: 'spear', cost: 55000, stats: { str: 250, int: 250, vit: 100 }, lore: 'Terror that freezes light itself.' },
   's_chest': { id: 's_chest', name: 'Absolute Plating', tier: 'S', type: 'chest', iconType: 'chest', cost: 80000, stats: { vit: 500, wil: 200, sns: 100 }, lore: 'Sleek, biological metallic armor.' },
@@ -120,4 +120,40 @@ export function equipItem(instanceId) {
   gameState.set('equipment', { ...equipment });
   
   return { success: true };
+}
+
+/**
+ * Opens a lootbox and handles rewards
+ */
+export function openLootbox(boxId) {
+  const box = LOOTBOXES[boxId];
+  if (!box) return null;
+
+  if (!spendStones(box.cost)) return null;
+
+  const roll = Math.random();
+  
+  if (roll < 0.4) {
+    const exp = (boxId === 'basic' ? 50 : boxId === 'premium' ? 250 : 1000);
+    awardEXP(exp);
+    return { type: 'exp', value: exp };
+  } else if (roll < 0.7) {
+    const stones = (boxId === 'basic' ? 20 : boxId === 'premium' ? 200 : 800);
+    awardStones(stones);
+    return { type: 'stones', value: stones };
+  } else {
+    // Gear reward
+    const tiers = boxId === 'basic' ? ['E', 'D'] : boxId === 'premium' ? ['C', 'B', 'A'] : ['A', 'S'];
+    const tier = tiers[Math.floor(Math.random() * tiers.length)];
+    const tierItems = Object.values(STORE_ITEMS).filter(i => i.tier === tier);
+    const item = tierItems[Math.floor(Math.random() * tierItems.length)];
+    
+    // Auto-buy
+    const inventory = gameState.get('inventory') || [];
+    const newItem = { ...item, instanceId: `gacha_${Date.now()}` };
+    inventory.push(newItem);
+    gameState.set('inventory', inventory);
+    
+    return { type: 'gear', value: newItem };
+  }
 }

@@ -51,20 +51,6 @@ export function renderUIIcon(assetPath, iconType, color = 'currentColor', size =
   `;
 }
 
-// ── Global SVG Icons (Nav/UI) ──
-const ICONS = {
-  dashboard: getIcon('dashboard'),
-  dungeons: getIcon('dungeons'),
-  shadows: getIcon('shadows', 'var(--cyan)'),
-  store: getIcon('store'),
-  settings: getIcon('settings'),
-  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:24px;height:24px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
-  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:20px;height:20px"><polyline points="20 6 9 17 4 12"/></svg>',
-  timer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
-  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
-  handbook: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;vertical-align:middle"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>'
-};
-
 // ── Boot ──
 document.addEventListener('DOMContentLoaded', () => {
   initAudio();
@@ -226,7 +212,7 @@ function renderDashboard(container) {
           <div class="status-bar-group"><span class="status-label">XP</span><div class="status-bar" style="height:3px"><div class="status-bar__fill status-bar__fill--exp" style="width:${progress}%"></div></div></div>
         </div>
       </div>
-      <button class="handbook-btn" onclick="UI_showHandBook()">${ICONS.handbook}</button>
+      <button class="handbook-btn" onclick="UI_showHandBook()">${getIcon('handbook')}</button>
     </div>
 
     <div class="multiplier-bar">
@@ -266,10 +252,15 @@ function renderDashboard(container) {
   const radarCanvas = document.getElementById('radar-chart');
   if (radarCanvas) drawRadarChart(radarCanvas);
 
-  document.getElementById('dash-new-task')?.onclick = () => showTaskCreator();
-  document.getElementById('dash-mana')?.onmousedown = startManaCharge;
-  document.getElementById('dash-mana')?.onmouseup = stopManaCharge;
-  document.getElementById('dash-mana')?.onmouseleave = stopManaCharge;
+  const newTaskBtn = document.getElementById('dash-new-task');
+  if (newTaskBtn) newTaskBtn.onclick = () => showTaskCreator();
+  
+  const manaBtn = document.getElementById('dash-mana');
+  if (manaBtn) {
+    manaBtn.onmousedown = startManaCharge;
+    manaBtn.onmouseup = stopManaCharge;
+    manaBtn.onmouseleave = stopManaCharge;
+  }
 
   attachTaskCardListeners();
 }
@@ -286,9 +277,10 @@ function renderDungeons(container) {
     <div class="task-list">
       ${tasks.length ? tasks.map(t => renderTaskCardHTML(t)).join('') : '<div class="empty-state">QUIET BEFORE THE STORM...</div>'}
     </div>
-    <button class="fab" id="fab-add-task">${ICONS.plus}</button>
+    <button class="fab" id="fab-add-task">${getIcon('plus')}</button>
   `;
-  document.getElementById('fab-add-task')?.onclick = () => showTaskCreator();
+  const addBtn = document.getElementById('fab-add-task');
+  if (addBtn) addBtn.onclick = () => showTaskCreator();
   attachTaskCardListeners();
 }
 
@@ -406,8 +398,8 @@ function renderTaskCardHTML(task) {
         </div>
       </div>
       <div class="task-card__actions">
-        <button class="task-card__btn task-card__complete" data-id="${task.id}">${ICONS.check}</button>
-        <button class="task-card__btn task-card__delete" data-id="${task.id}" style="color:var(--crimson)">${ICONS.trash}</button>
+        <button class="task-card__btn task-card__complete" data-id="${task.id}">${getIcon('check')}</button>
+        <button class="task-card__btn task-card__delete" data-id="${task.id}" style="color:var(--crimson)">${getIcon('trash')}</button>
       </div>
     </div>
   `;
